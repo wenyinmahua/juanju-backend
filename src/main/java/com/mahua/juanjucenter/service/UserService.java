@@ -10,7 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 * @author mahua
 *
 */
-public interface UserService extends IService<User> {
+public interface  UserService extends IService<User> {
 
 	/**
 	 * 用户注册
@@ -28,4 +28,11 @@ public interface UserService extends IService<User> {
 	 * @return 脱敏后的用户信息
 	 */
 	User doLogin(String userAccount, String userPassword, HttpServletRequest request);
+
+	/**
+	 *  用户脱敏
+	 * @param user 需要脱敏的用户
+	 * @return 脱敏后的用户
+	 */
+	User getSafetyUser(User user);
 }

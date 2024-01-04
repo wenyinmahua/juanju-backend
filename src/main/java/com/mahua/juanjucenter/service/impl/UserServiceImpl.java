@@ -30,7 +30,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 	/**
 	 * 盐值，混淆密码
 	 */
-	private final static String SALT = "mahua";
+	private static final String SALT = "mahua";
 
 
 	@Override
@@ -108,6 +108,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 		}
 
 		//3.用户脱敏
+		User safetyUser = getSafetyUser(user);
+		//4.记录用户的登录态
+		request.getSession().setAttribute(USER_LOGIN_STATE,user);
+
+		return safetyUser;
+	}
+
+
+	@Override
+	public User getSafetyUser(User user){
 		User safetyUser = new User();
 		safetyUser.setId(user.getId());
 		safetyUser.setUsername(user.getUsername());
@@ -122,10 +132,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 		safetyUser.setUserRole(user.getUserRole());
 		safetyUser.setStuId(user.getStuId());
 
-		//4.记录用户的登录态
-		request.getSession().setAttribute(USER_LOGIN_STATE,user);
-
-		return user;
+		return safetyUser;
 	}
 }
 

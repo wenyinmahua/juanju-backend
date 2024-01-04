@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.mahua.juanjucenter.constant.UserConstant.ADMIN_ROLE;
 import static com.mahua.juanjucenter.constant.UserConstant.USER_LOGIN_STATE;
@@ -62,31 +63,48 @@ public class UserController {
 
 	@GetMapping("/search")
 	public List<User> searchUsers(String username, HttpServletRequest request){
-		Object userobj = request.getSession().getAttribute(USER_LOGIN_STATE);
-		User user = (User) userobj;
-        Integer userRole = user.getUserRole();
-		if(user == null || userRole != ADMIN_ROLE){
+		if(!isAdmin(request)){
 			return new ArrayList<>();
 		}
 		QueryWrapper<User> queryWrapper = new QueryWrapper<>();
 		if(StringUtils.isNotBlank(username)){
 			queryWrapper.like("username",username);
 		}
-		return userService.list(queryWrapper);
+		List<User> userList = userService.list(queryWrapper);
+		return userList.stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
+//		return userList.stream().map(user -> {
+////		拉姆达表达式
+//			user.setUserPassword(null);
+//			return userService.getSafetyUser(user);
+//		}).collect(Collectors.toList());
 	}
 
 	@PostMapping("/delete")
-	public boolean delete(@RequestParam Long id,HttpServletRequest request){
-		Object userobj = request.getSession().getAttribute(USER_LOGIN_STATE);
-		User user = (User) userobj;
-		Integer userRole = user.getUserRole();
-		if(user == null || userRole != ADMIN_ROLE){
-			return false;
+	public boolean delete(@RequestBody long id,HttpServletRequest request){
+		if(!isAdmin(request)){
+		 	return false;
 		}
 		if(id <= 0){
 			return false;
 		}
 		return userService.removeById(id);
 	}
+
+	/**
+	 * 是否为管理员
+	 * @param request
+	 * @return
+	 */
+	public boolean isAdmin(HttpServletRequest request){
+		Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+		User user = (User) userObj;
+		Integer userRole = user.getUserRole();
+		if(user == null || userRole != ADMIN_ROLE){
+			return false;
+		}
+		return true;
+	}
+
+
 
 }

@@ -61,6 +61,16 @@ public class UserController {
 		return userService.doLogin(userAccount, userPassword,request);
 	}
 
+	@PostMapping("/logout")
+	public Integer userLogout( HttpServletRequest request){
+		//@RequestBody 注解：将前端传来的JSON参数和UserRegisterRequest参数进行绑定，并自动将参数注入到UserRegisterRequest对象中
+		if(request == null){
+			return null;
+		}
+		 return userService.logout(request);
+	}
+
+
 	@GetMapping("/search")
 	public List<User> searchUsers(String username, HttpServletRequest request){
 		if(!isAdmin(request)){

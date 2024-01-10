@@ -137,6 +137,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
 		return safetyUser;
 	}
+
+	@Override
+	public int logout(HttpServletRequest request) {
+		request.getSession().removeAttribute(USER_LOGIN_STATE);
+		return 1;
+	}
 }
 
 

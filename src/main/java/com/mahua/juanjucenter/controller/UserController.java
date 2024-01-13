@@ -1,6 +1,10 @@
 package com.mahua.juanjucenter.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.mahua.juanjucenter.Exception.BusinessException;
+import com.mahua.juanjucenter.common.BaseResponse;
+import com.mahua.juanjucenter.common.ErrorCode;
+import com.mahua.juanjucenter.common.ResultUtils;
 import com.mahua.juanjucenter.model.User;
 import com.mahua.juanjucenter.model.request.UserLoginRequest;
 import com.mahua.juanjucenter.model.request.UserRegisterRequest;
@@ -30,10 +34,10 @@ public class UserController {
 	private UserService userService;
 
 	@PostMapping("/register")
-	public Long Register(@RequestBody UserRegisterRequest userRegisterRequest){
+	public BaseResponse<Long> Register(@RequestBody UserRegisterRequest userRegisterRequest){
 		//@RequestBody 注解：将前端传来的JSON参数和UserRegisterRequest参数进行绑定，并自动将参数注入到UserRegisterRequest对象中
 		if(userRegisterRequest == null){
-			return null;
+			throw new BusinessException(ErrorCode.NULL_PARAMS);
 		}
 
 		String userAccount = userRegisterRequest.getUserAccount();
@@ -41,48 +45,53 @@ public class UserController {
 		String checkPassword = userRegisterRequest.getCheckPassword();
 		String stuId = userRegisterRequest.getStuId();
 		if(StringUtils.isAnyBlank( userAccount,userPassword,checkPassword,stuId)){
-			return null;
+			throw new BusinessException(ErrorCode.NULL_PARAMS);
 		}
-		return userService.userRegister(userAccount, userPassword, checkPassword,stuId);
-
+		long result = userService.userRegister(userAccount, userPassword, checkPassword,stuId);
+		return ResultUtils.success(result);
 	}
 
 
 	@PostMapping("/login")
-	public User Login(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request){
+	public BaseResponse<User> Login(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request){
 		//@RequestBody 注解：将前端传来的JSON参数和UserRegisterRequest参数进行绑定，并自动将参数注入到UserRegisterRequest对象中
 		if(userLoginRequest == null){
-			return null;
+			throw new BusinessException(ErrorCode.NULL_PARAMS);
 		}
 		String userAccount = userLoginRequest.getUserAccount();
 		String userPassword = userLoginRequest.getUserPassword();
 		if(StringUtils.isAnyBlank( userAccount,userPassword)){
-			return null;
+			throw new BusinessException(ErrorCode.NULL_PARAMS);
 		}
-		return userService.doLogin(userAccount, userPassword,request);
+		User uer = userService.doLogin(userAccount, userPassword,request);
+		User safetyUser = userService.getSafetyUser(uer);
+		return ResultUtils.success(safetyUser);
+
 	}
 
 	@PostMapping("/logout")
-	public Integer userLogout( HttpServletRequest request){
+	public BaseResponse<Integer> userLogout( HttpServletRequest request){
 		//@RequestBody 注解：将前端传来的JSON参数和UserRegisterRequest参数进行绑定，并自动将参数注入到UserRegisterRequest对象中
 		if(request == null){
-			return null;
+			throw new BusinessException(ErrorCode.NULL_PARAMS);
 		}
-		 return userService.logout(request);
+		 int result =  userService.logout(request);
+		return ResultUtils.success(result);
 	}
 
 
 	@GetMapping("/search")
-	public List<User> searchUsers(String username, HttpServletRequest request){
+	public BaseResponse<List<User>> searchUsers(String username, HttpServletRequest request){
 		if(!isAdmin(request)){
-			return new ArrayList<>();
+			throw new BusinessException(ErrorCode.NO_AUTHORIZED);
 		}
 		QueryWrapper<User> queryWrapper = new QueryWrapper<>();
 		if(StringUtils.isNotBlank(username)){
 			queryWrapper.like("username",username);
 		}
 		List<User> userList = userService.list(queryWrapper);
-		return userList.stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
+		List<User> list = userList.stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
+		return ResultUtils.success(list);
 //		return userList.stream().map(user -> {
 ////		拉姆达表达式
 //			user.setUserPassword(null);
@@ -91,27 +100,29 @@ public class UserController {
 	}
 
 	@PostMapping("/delete")
-	public boolean delete(@RequestBody long id,HttpServletRequest request){
+	public BaseResponse<Boolean> delete(@RequestBody long id,HttpServletRequest request){
 		if(!isAdmin(request)){
-		 	return false;
+			throw new BusinessException(ErrorCode.NO_AUTHORIZED);
 		}
 		if(id <= 0){
-			return false;
+			throw new BusinessException(ErrorCode.PARAMS_ERROR);
 		}
-		return userService.removeById(id);
+		boolean result = userService.removeById(id);
+		return ResultUtils.success(result);
 	}
 
 	@GetMapping("/current")
-	public User getCurrentUser(HttpServletRequest request){
+	public BaseResponse<User> getCurrentUser(HttpServletRequest request){
 		Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
 		User currentUser = (User) userObj;
 		if(currentUser == null){
-			return null;
+			throw new BusinessException(ErrorCode.NO_LOGIN);
 		}
 		long userId = currentUser.getId();
 		//todo 校验用户是否合法
 		User user = userService.getById(userId);
-		return userService.getSafetyUser(user);
+		User safetyUser = userService.getSafetyUser(user);
+		return ResultUtils.success(safetyUser);
 	}
 
 	/**

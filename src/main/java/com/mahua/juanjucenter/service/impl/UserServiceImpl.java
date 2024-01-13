@@ -2,6 +2,8 @@ package com.mahua.juanjucenter.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.mahua.juanjucenter.Exception.BusinessException;
+import com.mahua.juanjucenter.common.ErrorCode;
 import com.mahua.juanjucenter.model.User;
 import com.mahua.juanjucenter.service.UserService;
 import com.mahua.juanjucenter.mapper.UserMapper;
@@ -37,23 +39,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 	public long userRegister(String userAccount, String userPassword, String checkPassword,String stuId) {
 		//1.校验
 		if(StringUtils.isAnyBlank(userAccount,userPassword,checkPassword,stuId)){
-			//TODO 修改为自定义异常
-			return -1;
+			throw new BusinessException(ErrorCode.NULL_PARAMS,"参数为空");
 		}
 		if (userAccount.length() < 4){
-			return -1;
+			throw new BusinessException(ErrorCode.USER_ACCOUNT_ERROR,"账号长度不能小于4");
 		}
 		if (userPassword.length() < 8 || !userPassword.equals(checkPassword)){
-			return -1;
+			throw new BusinessException(ErrorCode.USER_PASSWORD_ERROR,"密码长度不能小于8");
 		}
 		if (stuId.length() != 10){
-			return -1;
+			throw new BusinessException(ErrorCode.PARAMS_ERROR,"学号长度必须为10");
 		}
 		//账号不能含有特殊字符
 		String validPattern = "[`~!@#$%^&*()+=|{}':;',\\[\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]";
 		Matcher matcher = Pattern.compile(validPattern).matcher(userAccount);
 		if(matcher.find()){
-			return -1;
+			throw new BusinessException(ErrorCode.USER_ACCOUNT_ERROR,"账号不能含有特殊字符");
 		}
 
 		//账号不能重复
@@ -63,14 +64,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 		queryWrapper.eq("user_account",userAccount);
 		long count = userMapper.selectCount(queryWrapper);
 		if(count > 0){
-			return -1;
+			throw new BusinessException(ErrorCode.USER_ACCOUNT_EXIST,"账号已存在");
 		}
 		//学号不能重复
 		queryWrapper = new QueryWrapper<>();
 		queryWrapper.eq("stu_id",stuId);
 		count = userMapper.selectCount(queryWrapper);
 		if(count > 0){
-			return -1;
+			throw new BusinessException(ErrorCode.STU_ID_EXIST,"学号已存在");
 		}
 		//2.加密
 		String encryptPassword = DigestUtils.md5DigestAsHex((SALT+userPassword).getBytes());
@@ -88,19 +89,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 	public User doLogin(String userAccount, String userPassword, HttpServletRequest request) {
 		//1.校验
 		if(StringUtils.isAnyBlank(userAccount,userPassword)){
-			return null;
+			throw new BusinessException(ErrorCode.NULL_PARAMS, "参数为空");
 		}
 		if (userAccount.length() < 4){
-			return null;
+			throw new BusinessException(ErrorCode.USER_ACCOUNT_ERROR,"账号长度不能小于4");
 		}
 		if (userPassword.length() < 8){
-			return null;
+			throw new BusinessException(ErrorCode.USER_PASSWORD_ERROR,"密码长度不能小于8");
 		}
 		//账号不能含有特殊字符
 		String validPattern = "[`~!@#$%^&*()+=|{}':;',\\[\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]";
 		Matcher matcher = Pattern.compile(validPattern).matcher(userAccount);
 		if(matcher.find()){
-			return null;
+			throw new BusinessException(ErrorCode.USER_ACCOUNT_ERROR,"账号不能含有特殊字符");
 		}
 
 		//2.加密
@@ -115,8 +116,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 		//用户不存在
 		if(user == null){
 			log.info("user login failed，userAccount cannot match userPassword");
-			return null;
+			throw new BusinessException(ErrorCode.USER_ACCOUNT_ERROR,"账号或密码错误");
 		}
+
 
 		//3.用户脱敏
 		User safetyUser = getSafetyUser(user);
@@ -130,7 +132,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 	@Override
 	public User getSafetyUser(User user){
 		if (user == null){
-			return null;
+			throw new BusinessException(ErrorCode.USER_NOT_EXIST,"用户不存在");
 		}
 		User safetyUser = new User();
 		safetyUser.setId(user.getId());

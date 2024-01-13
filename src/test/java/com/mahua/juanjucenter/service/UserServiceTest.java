@@ -40,7 +40,8 @@ class UserServiceTest {
 		String userAccount = "ma666hua";
 		String userPassword = "123456789";
 	  	String checkPassword = "123456789";
-		long result = userService.userRegister(userAccount, userPassword, checkPassword);
+		  String stuId = "123234";
+		long result = userService.userRegister(userAccount, userPassword, checkPassword,stuId);
 		Assertions.assertTrue(result > 0);
 
 

@@ -34,9 +34,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
 
 	@Override
-	public long userRegister(String userAccount, String userPassword, String checkPassword) {
+	public long userRegister(String userAccount, String userPassword, String checkPassword,String stuId) {
 		//1.校验
-		if(StringUtils.isAnyBlank(userAccount,userPassword,checkPassword)){
+		if(StringUtils.isAnyBlank(userAccount,userPassword,checkPassword,stuId)){
 			//TODO 修改为自定义异常
 			return -1;
 		}
@@ -44,6 +44,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 			return -1;
 		}
 		if (userPassword.length() < 8 || !userPassword.equals(checkPassword)){
+			return -1;
+		}
+		if (stuId.length() != 10){
 			return -1;
 		}
 		//账号不能含有特殊字符
@@ -62,12 +65,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 		if(count > 0){
 			return -1;
 		}
+		//学号不能重复
+		queryWrapper = new QueryWrapper<>();
+		queryWrapper.eq("stu_id",stuId);
+		count = userMapper.selectCount(queryWrapper);
+		if(count > 0){
+			return -1;
+		}
 		//2.加密
 		String encryptPassword = DigestUtils.md5DigestAsHex((SALT+userPassword).getBytes());
 		//3.插入数据
 		User user = new User();
 		user.setUserAccount(userAccount);
 		user.setUserPassword(encryptPassword);
+		user.setStuId(stuId);
 		userMapper.insert(user);
 		log.info("用户注册成功"+user.getId());
 		return user.getId() ;

@@ -1,4 +1,4 @@
-package com.mahua.juanjucenter.common;
+package com.mahua.juanju.common;
 
 /**
  * 返回工具类

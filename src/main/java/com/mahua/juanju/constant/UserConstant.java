@@ -1,4 +1,4 @@
-package com.mahua.juanjucenter.constant;
+package com.mahua.juanju.constant;
 
 public interface UserConstant {
 	/**

@@ -1,6 +1,6 @@
-package com.mahua.juanjucenter.service;
+package com.mahua.juanju.service;
 
-import com.mahua.juanjucenter.model.User;
+import com.mahua.juanju.model.User;
 import com.baomidou.mybatisplus.extension.service.IService;
 import jakarta.servlet.http.HttpServletRequest;
 

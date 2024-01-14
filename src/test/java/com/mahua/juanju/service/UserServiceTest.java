@@ -1,8 +1,6 @@
-package com.mahua.juanjucenter.service;
-import java.util.Date;
+package com.mahua.juanju.service;
 
-import com.mahua.juanjucenter.model.User;
-import jakarta.annotation.Resource;
+import com.mahua.juanju.model.User;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

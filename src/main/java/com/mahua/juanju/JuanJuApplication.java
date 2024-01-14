@@ -1,14 +1,13 @@
-package com.mahua.juanjucenter;
+package com.mahua.juanju;
 
-import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 //@MapperScan("com.mahua.juanjucenter.mapper")
 @SpringBootApplication
-public class JuanjuCenterApplication {
+public class JuanJuApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(JuanjuCenterApplication.class, args);
+		SpringApplication.run(JuanJuApplication.class, args);
 	}
 
 }

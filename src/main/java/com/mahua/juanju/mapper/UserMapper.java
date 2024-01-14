@@ -1,6 +1,6 @@
-package com.mahua.juanjucenter.mapper;
+package com.mahua.juanju.mapper;
 
-import com.mahua.juanjucenter.model.User;
+import com.mahua.juanju.model.User;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 

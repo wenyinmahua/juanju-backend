@@ -1,7 +1,7 @@
 spring:
   application:
 # 注意这里的name影响运行时的输出项目的名称
-    name: juanju-center
+    name: juanju
   datasource:
     url: jdbc:mysql://localhost:3307/juanju
     username: root

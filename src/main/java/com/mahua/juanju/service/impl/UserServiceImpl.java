@@ -1,12 +1,12 @@
-package com.mahua.juanjucenter.service.impl;
+package com.mahua.juanju.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.mahua.juanjucenter.Exception.BusinessException;
-import com.mahua.juanjucenter.common.ErrorCode;
-import com.mahua.juanjucenter.model.User;
-import com.mahua.juanjucenter.service.UserService;
-import com.mahua.juanjucenter.mapper.UserMapper;
+import com.mahua.juanju.Exception.BusinessException;
+import com.mahua.juanju.common.ErrorCode;
+import com.mahua.juanju.model.User;
+import com.mahua.juanju.service.UserService;
+import com.mahua.juanju.mapper.UserMapper;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +16,7 @@ import org.springframework.util.DigestUtils;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.mahua.juanjucenter.constant.UserConstant.USER_LOGIN_STATE;
+import static com.mahua.juanju.constant.UserConstant.USER_LOGIN_STATE;
 
 /**
  * 用户服务实现类

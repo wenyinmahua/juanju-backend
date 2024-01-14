@@ -1,25 +1,24 @@
-package com.mahua.juanjucenter.controller;
+package com.mahua.juanju.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.mahua.juanjucenter.Exception.BusinessException;
-import com.mahua.juanjucenter.common.BaseResponse;
-import com.mahua.juanjucenter.common.ErrorCode;
-import com.mahua.juanjucenter.common.ResultUtils;
-import com.mahua.juanjucenter.model.User;
-import com.mahua.juanjucenter.model.request.UserLoginRequest;
-import com.mahua.juanjucenter.model.request.UserRegisterRequest;
-import com.mahua.juanjucenter.service.UserService;
+import com.mahua.juanju.Exception.BusinessException;
+import com.mahua.juanju.common.BaseResponse;
+import com.mahua.juanju.common.ErrorCode;
+import com.mahua.juanju.common.ResultUtils;
+import com.mahua.juanju.model.User;
+import com.mahua.juanju.model.request.UserLoginRequest;
+import com.mahua.juanju.model.request.UserRegisterRequest;
+import com.mahua.juanju.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.mahua.juanjucenter.constant.UserConstant.ADMIN_ROLE;
-import static com.mahua.juanjucenter.constant.UserConstant.USER_LOGIN_STATE;
+import static com.mahua.juanju.constant.UserConstant.ADMIN_ROLE;
+import static com.mahua.juanju.constant.UserConstant.USER_LOGIN_STATE;
 
 /**
  * 用户接口

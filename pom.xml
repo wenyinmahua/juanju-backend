@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.mahua</groupId>
-    <artifactId>juanju-center</artifactId>
+    <artifactId>juanju</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>juanju-center</name>
-    <description>juanju-center</description>
+    <name>juanju</name>
+    <description>juanju</description>
     <properties>
         <java.version>17</java.version>
     </properties>

@@ -1,4 +1,4 @@
-package com.mahua.juanjucenter.model.request;
+package com.mahua.juanju.model.request;
 
 import lombok.Data;
 

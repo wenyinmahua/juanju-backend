@@ -1,4 +1,4 @@
-package com.mahua.juanjucenter.model;
+package com.mahua.juanju.model;
 
 import com.baomidou.mybatisplus.annotation.*;
 

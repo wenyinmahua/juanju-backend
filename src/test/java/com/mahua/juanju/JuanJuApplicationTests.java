@@ -1,10 +1,10 @@
-package com.mahua.juanjucenter;
+package com.mahua.juanju;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class JuanjuCenterApplicationTests {
+class JuanJuApplicationTests {
 
 
 	@Test

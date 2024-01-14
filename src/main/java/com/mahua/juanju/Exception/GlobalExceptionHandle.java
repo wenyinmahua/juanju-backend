@@ -1,9 +1,9 @@
-package com.mahua.juanjucenter.Exception;
+package com.mahua.juanju.Exception;
 
 
-import com.mahua.juanjucenter.common.BaseResponse;
-import com.mahua.juanjucenter.common.ErrorCode;
-import com.mahua.juanjucenter.common.ResultUtils;
+import com.mahua.juanju.common.BaseResponse;
+import com.mahua.juanju.common.ErrorCode;
+import com.mahua.juanju.common.ResultUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;

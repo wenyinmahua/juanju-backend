@@ -1,7 +1,7 @@
-package com.mahua.juanjucenter.Exception;
+package com.mahua.juanju.Exception;
 
 
-import com.mahua.juanjucenter.common.ErrorCode;
+import com.mahua.juanju.common.ErrorCode;
 
 /**
  * 自定义业务异常类

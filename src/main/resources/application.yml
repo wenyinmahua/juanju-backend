@@ -1,4 +1,6 @@
 spring:
+  profiles:
+    active: dev
   application:
 # 注意这里的name影响运行时的输出项目的名称
     name: juanju
@@ -43,5 +45,3 @@ springdoc:
 # knife4j的增强配置，不需要增强可以不配
 knife4j:
   enable: true
-  setting:
-    language: zh_cn

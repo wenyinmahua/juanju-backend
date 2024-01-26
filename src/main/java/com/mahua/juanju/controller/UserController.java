@@ -9,6 +9,8 @@ import com.mahua.juanju.model.User;
 import com.mahua.juanju.model.request.UserLoginRequest;
 import com.mahua.juanju.model.request.UserRegisterRequest;
 import com.mahua.juanju.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
@@ -27,12 +29,14 @@ import static com.mahua.juanju.constant.UserConstant.USER_LOGIN_STATE;
  */
 @RestController
 @RequestMapping("/user")
+@Tag(name = "用户接口")
 public class UserController {
 
 	@Resource
 	private UserService userService;
 
 	@PostMapping("/register")
+	@Operation(summary = "用户注册")
 	public BaseResponse<Long> Register(@RequestBody UserRegisterRequest userRegisterRequest){
 		//@RequestBody 注解：将前端传来的JSON参数和UserRegisterRequest参数进行绑定，并自动将参数注入到UserRegisterRequest对象中
 		if(userRegisterRequest == null){
@@ -52,6 +56,7 @@ public class UserController {
 
 
 	@PostMapping("/login")
+	@Operation(summary = "用户登录")
 	public BaseResponse<User> Login(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request){
 		//@RequestBody 注解：将前端传来的JSON参数和UserRegisterRequest参数进行绑定，并自动将参数注入到UserRegisterRequest对象中
 		if(userLoginRequest == null){
@@ -69,6 +74,7 @@ public class UserController {
 	}
 
 	@PostMapping("/logout")
+	@Operation(summary = "用户退出登录")
 	public BaseResponse<Integer> userLogout( HttpServletRequest request){
 		//@RequestBody 注解：将前端传来的JSON参数和UserRegisterRequest参数进行绑定，并自动将参数注入到UserRegisterRequest对象中
 		if(request == null){
@@ -80,6 +86,7 @@ public class UserController {
 
 
 	@GetMapping("/search")
+	@Operation(summary = "用户搜索")
 	public BaseResponse<List<User>> searchUsers(String username, HttpServletRequest request){
 		if(!isAdmin(request)){
 			throw new BusinessException(ErrorCode.NO_AUTHORIZED);
@@ -99,6 +106,7 @@ public class UserController {
 	}
 
 	@PostMapping("/delete")
+	@Operation(summary = "用户删除")
 	public BaseResponse<Boolean> delete(@RequestBody long id,HttpServletRequest request){
 		if(!isAdmin(request)){
 			throw new BusinessException(ErrorCode.NO_AUTHORIZED);
@@ -111,6 +119,7 @@ public class UserController {
 	}
 
 	@GetMapping("/current")
+	@Operation(summary = "获取当前用户信息")
 	public BaseResponse<User> getCurrentUser(HttpServletRequest request){
 		Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
 		User currentUser = (User) userObj;

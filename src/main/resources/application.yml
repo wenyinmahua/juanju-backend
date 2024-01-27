@@ -9,9 +9,17 @@ spring:
     username: root
     driver-class-name: com.mysql.cj.jdbc.Driver
     password: "030109"
-    # session失效时间
+    # session失效时间(分钟,两个月),SpringBoot3.0之后不需要再配置store-type
   session:
     timeout: 86400
+
+# redis配置
+  data:
+    redis:
+      port: 6379
+      host: localhost
+      database: 0
+
 
 server:
   port: 8080

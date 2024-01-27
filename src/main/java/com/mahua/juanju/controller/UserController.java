@@ -28,6 +28,7 @@ import static com.mahua.juanju.constant.UserConstant.USER_LOGIN_STATE;
  *
  * @author mahua
  */
+@CrossOrigin(origins = {"http://localhost:5173"})
 @RestController
 @RequestMapping("/user")
 @Tag(name = "用户接口")
@@ -138,7 +139,6 @@ public class UserController {
 			throw new BusinessException(ErrorCode.NO_LOGIN);
 		}
 		long userId = currentUser.getId();
-		//todo 校验用户是否合法
 		User user = userService.getById(userId);
 		User safetyUser = userService.getSafetyUser(user);
 		return ResultUtils.success(safetyUser);

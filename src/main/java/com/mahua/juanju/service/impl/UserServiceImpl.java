@@ -157,6 +157,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 		safetyUser.setUserRole(user.getUserRole());
 		safetyUser.setStuId(user.getStuId());
 		safetyUser.setTags(user.getTags());
+		safetyUser.setProfile(user.getProfile());
 
 		return safetyUser;
 	}

@@ -200,6 +200,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 		//内存查询
 		//1.查询所有的用户
 		QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+		for (String tageName : tagNameList) {
+			queryWrapper = queryWrapper.like("tags",tageName);
+		}
 		List<User> userList = userMapper.selectList(queryWrapper);
 		//2.在内存中判断是否包含要求的标签，需要将Json转换为java对象（String）格式,反序列化
 		Gson gson = new Gson();

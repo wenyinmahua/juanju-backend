@@ -1,10 +1,14 @@
 package com.mahua.juanju.service;
 
 import com.mahua.juanju.model.User;
+import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import java.util.Arrays;
+import java.util.List;
 
 
 /**
@@ -41,7 +45,12 @@ class UserServiceTest {
 		  String stuId = "123234";
 		long result = userService.userRegister(userAccount, userPassword, checkPassword,stuId);
 		Assertions.assertTrue(result > 0);
-
-
 	}
+	@Test
+	void searchUsersByTags(){
+		List<String> tagNameList = Arrays.asList("java","python");
+		List<User> userList = userService.searchUsersByTags(tagNameList);
+		Assert.assertNotNull(userList);
+	}
+
 }

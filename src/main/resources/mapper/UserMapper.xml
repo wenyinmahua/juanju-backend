@@ -21,6 +21,7 @@
             <result property="userRole" column="user_role" jdbcType="TINYINT"/>
             <result property="stuId" column="stu_id" jdbcType="VARCHAR"/>
             <result property="tags" column="tags" jdbcType="VARCHAR"/>
+            <result property="profile" column="profile" jdbcType="VARCHAR"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -29,6 +30,6 @@
         phone,email,major,
         user_status,create_time,update_time,
         is_delete,user_role,stu_id,
-        tags
+        tags,profile
     </sql>
 </mapper>

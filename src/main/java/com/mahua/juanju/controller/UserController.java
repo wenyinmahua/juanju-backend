@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -103,6 +104,16 @@ public class UserController {
 //			user.setUserPassword(null);
 //			return userService.getSafetyUser(user);
 //		}).collect(Collectors.toList());
+	}
+
+	@GetMapping("/search/tags")
+	@Operation(summary = "根据标签搜索用户")
+	public BaseResponse<List<User>> searchUsersByTags(@RequestParam(required = false) List<String> tagNameList){
+		if(CollectionUtils.isEmpty(tagNameList)){
+			throw new BusinessException(ErrorCode.NULL_PARAMS);
+		}
+		List<User> userList = userService.searchUsersByTags(tagNameList);
+		return ResultUtils.success(userList);
 	}
 
 	@PostMapping("/delete")

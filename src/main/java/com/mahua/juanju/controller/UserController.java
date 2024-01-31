@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.mahua.juanju.constant.UserConstant.ADMIN_ROLE;
+
 import static com.mahua.juanju.constant.UserConstant.USER_LOGIN_STATE;
 
 /**
@@ -28,7 +28,7 @@ import static com.mahua.juanju.constant.UserConstant.USER_LOGIN_STATE;
  *
  * @author mahua
  */
-@CrossOrigin(origins = {"http://localhost:5173"})
+@CrossOrigin(origins = {"http://localhost:5173","http://localhost:8000","http://127.0.0.1:5173"})
 @RestController
 @RequestMapping("/user")
 @Tag(name = "用户接口")
@@ -37,6 +37,7 @@ public class UserController {
 	@Resource
 	private UserService userService;
 
+	//@RequestBody：将前端传来的JSON参数和UserRegisterRequest参数进行绑定，并自动将参数注入到UserRegisterRequest对象中
 	@PostMapping("/register")
 	@Operation(summary = "用户注册")
 	public BaseResponse<Long> Register(@RequestBody UserRegisterRequest userRegisterRequest){
@@ -71,7 +72,7 @@ public class UserController {
 		}
 		User uer = userService.doLogin(userAccount, userPassword,request);
 		User safetyUser = userService.getSafetyUser(uer);
-		return ResultUtils.success(safetyUser);
+		return ResultUtils.success(safetyUser,"登陆成功");
 
 	}
 
@@ -90,7 +91,7 @@ public class UserController {
 	@GetMapping("/search")
 	@Operation(summary = "用户搜索")
 	public BaseResponse<List<User>> searchUsers(String username, HttpServletRequest request){
-		if(!isAdmin(request)){
+		if(!userService.isAdmin(request)){
 			throw new BusinessException(ErrorCode.NO_AUTHORIZED);
 		}
 		QueryWrapper<User> queryWrapper = new QueryWrapper<>();
@@ -117,10 +118,22 @@ public class UserController {
 		return ResultUtils.success(userList);
 	}
 
+	@PostMapping("/update")
+	public BaseResponse<Integer> update(@RequestBody User user, HttpServletRequest request){
+		//1.校验参数是否为空
+		if(user == null){
+			throw new BusinessException(ErrorCode.NULL_PARAMS);
+		}
+		User loginUser = userService.getLoginUser(request);
+
+		int result = userService.updateUser(user,loginUser);
+		return ResultUtils.success(result);
+	}
+
 	@PostMapping("/delete")
 	@Operation(summary = "用户删除")
 	public BaseResponse<Boolean> delete(@RequestBody long id,HttpServletRequest request){
-		if(!isAdmin(request)){
+		if(!userService.isAdmin(request)){
 			throw new BusinessException(ErrorCode.NO_AUTHORIZED);
 		}
 		if(id <= 0){
@@ -144,20 +157,7 @@ public class UserController {
 		return ResultUtils.success(safetyUser);
 	}
 
-	/**
-	 * 是否为管理员
-	 * @param request
-	 * @return
-	 */
-	public boolean isAdmin(HttpServletRequest request){
-		Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
-		User user = (User) userObj;
-		Integer userRole = user.getUserRole();
-		if(user == null || userRole != ADMIN_ROLE){
-			return false;
-		}
-		return true;
-	}
+
 
 
 

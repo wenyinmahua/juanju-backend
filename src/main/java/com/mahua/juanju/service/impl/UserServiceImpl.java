@@ -25,6 +25,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.mahua.juanju.constant.UserConstant.ADMIN_ROLE;
 import static com.mahua.juanju.constant.UserConstant.USER_LOGIN_STATE;
 
 /**
@@ -115,11 +116,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
 		//2.加密
 		userPassword = DigestUtils.md5DigestAsHex((SALT+userPassword).getBytes());
-		//账号不能重复
 		//创建一个QueryWrapper对象，该对象用于封装查询条件，用于查询User实体类的相关信息。
 		QueryWrapper<User> queryWrapper = new QueryWrapper<>();
 		//判断插入的userAccount在数据库中是否已有
-		queryWrapper.eq("user_account",userAccount);
+		if(userAccount.length() != 10){
+			queryWrapper.eq("user_account",userAccount);
+		}else{
+			queryWrapper.eq("stu_id",userAccount);
+		}
 		queryWrapper.eq("user_password",userPassword);
 		User user = userMapper.selectOne(queryWrapper);
 		//用户不存在
@@ -237,6 +241,35 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
 	}
 
+	@Override
+	public int updateUser(User user, User loginUser) {
+		long userId = user.getId();
+		if (userId <= 0){
+			throw new BusinessException(ErrorCode.NULL_PARAMS);
+		}
+		if (!isAdmin(loginUser) && user.getId() != loginUser.getId()){
+			throw new BusinessException(ErrorCode.NO_AUTHORIZED);
+		}
+		User oldUser = userMapper.selectById(user.getId());
+		if (oldUser == null){
+			throw new BusinessException(ErrorCode.USER_NOT_EXIST);
+		}
+		return userMapper.updateById(user);
+
+	}
+
+	@Override
+	public User getLoginUser(HttpServletRequest request) {
+		if (request == null){
+			return null;
+		}
+		Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+		if (userObj == null){
+			throw new BusinessException(ErrorCode.NO_AUTHORIZED);
+		}
+		return (User) userObj;
+	}
+
 	/**
 	 * 根据用户搜索标签（SQL查询版）
 	 *
@@ -260,6 +293,26 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 //		===>
 //		userList.forEach(this::getSafetyUser);
 		return userList.stream().map(this::getSafetyUser).collect(Collectors.toList());
+	}
+
+	/**
+	 * 是否为管理员
+	 * @param request
+	 * @return
+	 */
+	public boolean isAdmin(HttpServletRequest request){
+		Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+		User user = (User) userObj;
+		Integer userRole = user.getUserRole();
+		if(user == null || userRole != ADMIN_ROLE){
+			return false;
+		}
+		return true;
+	}
+
+	@Override
+	public boolean isAdmin(User loginUser){
+		return loginUser != null && loginUser.getUserRole() != ADMIN_ROLE;
 	}
 
 }

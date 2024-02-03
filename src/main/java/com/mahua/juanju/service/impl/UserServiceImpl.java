@@ -1,6 +1,8 @@
 package com.mahua.juanju.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -178,16 +180,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 		return 1;
 	}
 
-	/**
-	 * 在内存中查询用户
-	 *
-	 * @param tagNameList 查询的用户需要具有的标签
-	 * @return
-	 */
-
 	@Override
-	public List<User> searchUsersByTags(List<String> tagNameList){
-		if (CollectionUtils.isEmpty(tagNameList)){
+	public IPage<User> searchUsersByTags(Long pageSize, Long pageNum, List<String> tagNameList) {
+				if (CollectionUtils.isEmpty(tagNameList)){
 			throw new BusinessException(ErrorCode.NULL_PARAMS);
 		}
 		//SQL查询
@@ -208,7 +203,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 		for (String tageName : tagNameList) {
 			queryWrapper = queryWrapper.like("tags",tageName);
 		}
-		List<User> userList = userMapper.selectList(queryWrapper);
+		IPage<User> userPageList = userMapper.selectPage(new Page<>(pageNum,pageSize),queryWrapper);
+//		List<User> userList = userMapper.selectList(queryWrapper);
 		//2.在内存中判断是否包含要求的标签，需要将Json转换为java对象（String）格式,反序列化
 		Gson gson = new Gson();
 		/*for (User user : userList) {
@@ -221,14 +217,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 			}
 			return true;
 		}*/
-		return userList.stream().filter(user ->{
+		List<User> userList = userPageList.getRecords();
+		userList = userList.stream().filter(user ->{
 			String tagStr = user.getTags();
 			if (StringUtils.isEmpty(tagStr)){
 				return false;
 			}
 			//Json 转换为String类型
 			Set<String> tempTagNameSet = gson.fromJson(tagStr,new TypeToken<Set<String>>(){}.getType());
-			//如果取得的结果为空，那么就将其变为一个HashSet对象，类似于if
+			//如果取得的结果为空，那么就将其变为一个HashSet对象，Optional执行的内容类似于if得作用
 			tempTagNameSet = Optional.ofNullable(tempTagNameSet).orElse(new HashSet<>());
 			for (String tagName : tempTagNameSet) {
 				if (!tempTagNameSet.contains(tagName)){
@@ -237,9 +234,73 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 			}
 			return true;
 		}).map(this::getSafetyUser).collect(Collectors.toList());
-
-
+		userPageList.setRecords(userList);
+		return userPageList;
 	}
+
+//	/**
+//	 * 在内存中查询用户
+//	 *
+//	 * @param tagNameList 查询的用户需要具有的标签
+//	 * @return
+//	 */
+
+//	@Override
+//	public List<User> searchUsersByTags(List<String> tagNameList){
+//		if (CollectionUtils.isEmpty(tagNameList)){
+//			throw new BusinessException(ErrorCode.NULL_PARAMS);
+//		}
+//		//SQL查询
+//		/*QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+//		for (String tageName : tagNameList) {
+//			queryWrapper = queryWrapper.like("tags",tageName);
+//		}
+//		List<User> userList = userMapper.selectList(queryWrapper);
+//		userList.forEach(user ->{
+//			getSafetyUser(user);
+//		});
+//		userList.forEach(this::getSafetyUser);
+//		return userList.stream().map(this::getSafetyUser).collect(Collectors.toList());
+//*/
+//		//内存查询
+//		//1.查询所有的用户
+//		QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+//		for (String tageName : tagNameList) {
+//			queryWrapper = queryWrapper.like("tags",tageName);
+//		}
+//		List<User> userList = userMapper.selectList(queryWrapper);
+//		//2.在内存中判断是否包含要求的标签，需要将Json转换为java对象（String）格式,反序列化
+//		Gson gson = new Gson();
+//		/*for (User user : userList) {
+//			String tagStr = user.getTags();
+//			Set<String> tempTagNameSet = gson.fromJson(tagStr,new TypeToken<Set<String>>(){}.getType());
+//			for (String tagName : tempTagNameSet) {
+//				if (!tempTagNameSet.contains(tagName)){
+//					return false;
+//				}
+//			}
+//			return true;
+//		}*/
+//		userList = userList.stream().filter(user ->{
+//			String tagStr = user.getTags();
+//			if (StringUtils.isEmpty(tagStr)){
+//				return false;
+//			}
+//			//Json 转换为String类型
+//			Set<String> tempTagNameSet = gson.fromJson(tagStr,new TypeToken<Set<String>>(){}.getType());
+//			//如果取得的结果为空，那么就将其变为一个HashSet对象，Optional执行的内容类似于if得作用
+//			tempTagNameSet = Optional.ofNullable(tempTagNameSet).orElse(new HashSet<>());
+//			for (String tagName : tempTagNameSet) {
+//				if (!tempTagNameSet.contains(tagName)){
+//					return false;
+//				}
+//			}
+//			return true;
+//		}).map(this::getSafetyUser).collect(Collectors.toList());
+//		return userList;
+//
+//
+//	}
 
 	@Override
 	public int updateUser(User user, User loginUser) {
@@ -247,7 +308,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 		if (userId <= 0){
 			throw new BusinessException(ErrorCode.NULL_PARAMS);
 		}
-		if (!isAdmin(loginUser) && user.getId() != loginUser.getId()){
+		if (!isAdmin(loginUser) && !user.getId().equals(loginUser.getId())){
 			throw new BusinessException(ErrorCode.NO_AUTHORIZED);
 		}
 		User oldUser = userMapper.selectById(user.getId());
@@ -265,7 +326,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 		}
 		Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
 		if (userObj == null){
-			throw new BusinessException(ErrorCode.NO_AUTHORIZED);
+			throw new BusinessException(ErrorCode.NO_LOGIN);
 		}
 		return (User) userObj;
 	}

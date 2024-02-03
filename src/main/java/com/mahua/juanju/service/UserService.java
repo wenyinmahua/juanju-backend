@@ -1,5 +1,6 @@
 package com.mahua.juanju.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.mahua.juanju.model.User;
 import com.baomidou.mybatisplus.extension.service.IService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -44,7 +45,7 @@ public interface  UserService extends IService<User> {
 	 */
 	int logout(HttpServletRequest request);
 
-	List<User> searchUsersByTags(List<String> tagNameList);
+	IPage<User> searchUsersByTags(Long pageSize, Long pageNum, List<String> tagNameList);
 
 	int updateUser(User user,User loginUser);
 
@@ -53,4 +54,5 @@ public interface  UserService extends IService<User> {
 	boolean isAdmin(HttpServletRequest request);
 
 	boolean isAdmin(User loginUser);
+
 }

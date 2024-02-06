@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 
-import static com.mahua.juanju.constant.UserConstant.USER_LOGIN_STATE;
+import static com.mahua.juanju.constant.UserConstant.USER_LOGIN_STATUS;
 
 /**
  * 用户接口
@@ -184,7 +184,7 @@ public class UserController {
 	@GetMapping("/current")
 	@Operation(summary = "获取当前用户信息")
 	public BaseResponse<User> getCurrentUser(HttpServletRequest request){
-		Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+		Object userObj = request.getSession().getAttribute(USER_LOGIN_STATUS);
 		User currentUser = (User) userObj;
 		if(currentUser == null){
 			throw new BusinessException(ErrorCode.NO_LOGIN);

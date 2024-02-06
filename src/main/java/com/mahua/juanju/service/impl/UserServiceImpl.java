@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.mahua.juanju.constant.UserConstant.ADMIN_ROLE;
-import static com.mahua.juanju.constant.UserConstant.USER_LOGIN_STATE;
+import static com.mahua.juanju.constant.UserConstant.USER_LOGIN_STATUS;
 
 /**
  * 用户服务实现类
@@ -138,7 +138,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 		//3.用户脱敏
 		User safetyUser = getSafetyUser(user);
 		//4.记录用户的登录态
-		request.getSession().setAttribute(USER_LOGIN_STATE,user);
+		request.getSession().setAttribute(USER_LOGIN_STATUS,user);
 
 		return safetyUser;
 	}
@@ -176,7 +176,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 	 */
 	@Override
 	public int logout(HttpServletRequest request) {
-		request.getSession().removeAttribute(USER_LOGIN_STATE);
+		request.getSession().removeAttribute(USER_LOGIN_STATUS);
 		return 1;
 	}
 
@@ -324,7 +324,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 		if (request == null){
 			return null;
 		}
-		Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+		Object userObj = request.getSession().getAttribute(USER_LOGIN_STATUS);
 		if (userObj == null){
 			throw new BusinessException(ErrorCode.NO_LOGIN);
 		}
@@ -362,7 +362,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 	 * @return
 	 */
 	public boolean isAdmin(HttpServletRequest request){
-		Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+		Object userObj = request.getSession().getAttribute(USER_LOGIN_STATUS);
 		User user = (User) userObj;
 		Integer userRole = user.getUserRole();
 		if(user == null || userRole != ADMIN_ROLE){

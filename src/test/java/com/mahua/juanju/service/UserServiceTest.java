@@ -1,7 +1,6 @@
 package com.mahua.juanju.service;
 
 import com.mahua.juanju.model.User;
-import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

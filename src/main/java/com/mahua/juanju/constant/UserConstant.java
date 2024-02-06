@@ -6,7 +6,7 @@ public interface UserConstant {
 	 *
 	 * @author mahua
 	 */
-	String USER_LOGIN_STATE = "userLoginState";
+	String USER_LOGIN_STATUS = "userLoginStatus";
 
 	//-------权限
 

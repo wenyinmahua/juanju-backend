@@ -308,7 +308,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 		if (userId <= 0){
 			throw new BusinessException(ErrorCode.NULL_PARAMS);
 		}
-		if (!isAdmin(loginUser) && !user.getId().equals(loginUser.getId())){
+		if (user.getId() != loginUser.getId() && !isAdmin(loginUser) ){
 			throw new BusinessException(ErrorCode.NO_AUTHORIZED);
 		}
 		User oldUser = userMapper.selectById(user.getId());
@@ -364,6 +364,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 	public boolean isAdmin(HttpServletRequest request){
 		Object userObj = request.getSession().getAttribute(USER_LOGIN_STATUS);
 		User user = (User) userObj;
+		if (user == null){
+			throw new BusinessException(ErrorCode.NO_LOGIN);
+		}
 		Integer userRole = user.getUserRole();
 		if(user == null || userRole != ADMIN_ROLE){
 			return false;
@@ -373,7 +376,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
 	@Override
 	public boolean isAdmin(User loginUser){
-		return loginUser != null && loginUser.getUserRole() != ADMIN_ROLE;
+		return loginUser != null && loginUser.getUserRole() == ADMIN_ROLE;
 	}
 
 }

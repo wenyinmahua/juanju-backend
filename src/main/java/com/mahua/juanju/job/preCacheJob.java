@@ -39,12 +39,13 @@ public class preCacheJob {
 	//每天00 : 00点执行，预热推荐缓存
 	@Scheduled(cron = "0 0 0 * * ?")
 	public void doCacheRecommendUser(){
-		RLock lock = redissonClient.getLock("juanju:precachejob:docache:lock");
+		RLock lock = redissonClient.getLock("juanju:preCacheJob:doCache:lock");
 		try {
+			// 等待时间为 0，抢锁只抢一次，抢不到就放弃，锁存在时间为 -1
 			if(lock.tryLock(0,-1,TimeUnit.MILLISECONDS)){
 				System.out.println("get lock"+Thread.currentThread().getId());
 				for (Long id : mainUserList) {
-					//预热推荐用户,只加载该用户的前64条数据，每页保存8条数据，
+					//预热推荐用户,只加载该用户获取信息中的前64条数据，每页保存8条数据，
 					for(int pageNum = 1;pageNum <= 8; pageNum++){
 						String redisKey = String.format("juanju:user:recommend:%s:%s",id,pageNum);
 						ValueOperations<String,Object> valueOperations = redisTemplate.opsForValue();
@@ -68,8 +69,6 @@ public class preCacheJob {
 				lock.unlock();
 			}
 		}
-
-
 	}
 
 }

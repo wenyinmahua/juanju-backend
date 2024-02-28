@@ -1,10 +1,16 @@
 package com.mahua.juanju.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.mahua.juanju.Exception.BusinessException;
+import com.mahua.juanju.common.ErrorCode;
 import com.mahua.juanju.model.domain.UserTeam;
+import com.mahua.juanju.model.vo.UserVO;
 import com.mahua.juanju.service.UserTeamService;
 import com.mahua.juanju.mapper.UserTeamMapper;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
 * @author mahua
@@ -14,6 +20,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserTeamServiceImpl extends ServiceImpl<UserTeamMapper, UserTeam>
     implements UserTeamService{
+
+	@Resource
+	private UserTeamMapper userTeamMapper;
 
 }
 

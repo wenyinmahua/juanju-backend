@@ -16,8 +16,12 @@ public class TeamQuery implements Serializable {
 	/**
 	 * 队伍id
 	 */
-	@TableId(type = IdType.AUTO)
 	private Long id;
+
+	/**
+	 * 搜索关键词（同时对队伍名称和队伍描述生效）
+	 */
+	private String searchText;
 
 	/**
 	 * 队伍名称
@@ -30,9 +34,9 @@ public class TeamQuery implements Serializable {
 	private Integer maxNum;
 
 	/**
-	 * 加入队伍密码
+	 * 队伍描述
 	 */
-	private String teamPassword;
+	private String description;
 
 	/**
 	 * 队伍过期时间
@@ -58,7 +62,7 @@ public class TeamQuery implements Serializable {
 	/**
 	 * 分页查询的一个的个数
 	 */
-	private Integer pageSize;
+	private Integer pageSize = 8;
 
 	/**
 	 * 分页查询的页数

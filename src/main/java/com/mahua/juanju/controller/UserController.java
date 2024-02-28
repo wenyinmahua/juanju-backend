@@ -108,6 +108,7 @@ public class UserController {
 			queryWrapper.like("username",username);
 		}
 		List<User> userList = userService.list(queryWrapper);
+		// 脱敏
 		List<User> list = userList.stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
 		return ResultUtils.success(list);
 //		return userList.stream().map(user -> {

@@ -6,7 +6,7 @@ create table team
     avatar_url    varchar(1024)                          null comment '队伍头像',
     max_num        tinyint      default 5                null comment '队伍最大人数',
     team_password varchar(255)                           null comment '加入队伍密码',
-    expire_time   datatime                         null comment '队伍过期时间',
+    expire_time   datatime                               null comment '队伍过期时间',
     user_id       bigint                                 not null comment '创始人id',
     category  varchar(255)                               not null comment '队伍分类',
     status     tinyint      default 0    not null comment '队伍状态：0-公开 1-私有 2-加密',

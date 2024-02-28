@@ -2,7 +2,10 @@ package com.mahua.juanju.mapper;
 
 import com.mahua.juanju.model.domain.Team;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.mahua.juanju.model.vo.UserVO;
 import org.apache.ibatis.annotations.Mapper;
+
+import java.util.List;
 
 /**
 * @author mahua

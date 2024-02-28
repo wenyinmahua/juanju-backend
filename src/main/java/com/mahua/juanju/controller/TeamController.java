@@ -9,16 +9,25 @@ import com.mahua.juanju.common.ResultUtils;
 import com.mahua.juanju.model.User;
 import com.mahua.juanju.model.domain.Team;
 import com.mahua.juanju.model.dto.TeamQuery;
+import com.mahua.juanju.model.request.TeamJoinRequest;
 import com.mahua.juanju.model.request.TeamRequest;
+import com.mahua.juanju.model.request.TeamUpdateRequest;
+import com.mahua.juanju.model.vo.TeamUserVO;
+import com.mahua.juanju.model.vo.UserVO;
 import com.mahua.juanju.service.TeamService;
 import com.mahua.juanju.service.UserService;
+import com.mahua.juanju.service.UserTeamService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Tag(name="队伍接口")
 @RestController
@@ -33,7 +42,10 @@ public class TeamController {
 	@Resource
 	private TeamService teamService;
 
-//	@Operation(summary = "创建队伍")
+	@Resource
+	private UserTeamService userTeamService;
+
+	@Operation(summary = "创建队伍")
 	@PostMapping("/add")
 	public BaseResponse<Long> createTeam (@RequestBody TeamRequest teamRequest, HttpServletRequest request){
 		if(teamRequest == null){
@@ -60,16 +72,23 @@ public class TeamController {
 	}
 	@Operation(summary = "更新队伍")
 	@PutMapping("/update")
-	public BaseResponse<Boolean> updateTeam(@RequestBody Team team){
-		if (team == null){
+	public BaseResponse<Boolean> updateTeam(@RequestBody TeamUpdateRequest teamUpdateRequest,HttpServletRequest request){
+		User loginUser = userService.getLoginUser(request);
+		if (teamUpdateRequest == null){
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
 		}
-		boolean result = teamService.updateById(team);
+		boolean result = teamService.updateTeam(teamUpdateRequest,loginUser);
 		if (!result){
 			throw new BusinessException(ErrorCode.SYSTEM_ERROR,"更新失败");
 		}
 		return ResultUtils.success(true);
 	}
+
+	/**
+	 * 获得队伍详细描述
+	 * @param id
+	 * @return
+	 */
 	@Operation(summary = "获得队伍")
 	@GetMapping("/get")
 	public BaseResponse<Team> getTeamListById(long id){
@@ -85,21 +104,39 @@ public class TeamController {
 
 	@Operation(summary = "分页分类查询队伍")
 	@GetMapping("/list")
-	public BaseResponse<Page<Team>> teamList(@RequestBody TeamQuery teamQuery){
+	public BaseResponse<Page<TeamUserVO>> teamList(@ParameterObject TeamQuery teamQuery, HttpServletRequest request){
 		if (teamQuery == null ){
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
 		}
-		long pageSize = teamQuery.getPageSize();
-		long pageNum = teamQuery.getPageNum();
-		Team team = new Team();
-		BeanUtils.copyProperties(teamQuery,team);
-		QueryWrapper<Team> queryWrapper = new QueryWrapper(team);
-		Page<Team> teamList = teamService.page(new Page(pageNum,pageSize),queryWrapper);
+		boolean isAdmin = userService.isAdmin(request);
+		Page<TeamUserVO> teamList = teamService.listTeams(teamQuery,isAdmin);
 		if (teamList == null){
 			throw new BusinessException(ErrorCode.SYSTEM_ERROR,"获取队伍列表错误");
 		}
 		return ResultUtils.success(teamList);
 	}
+
+	@PostMapping("/join")
+	public BaseResponse<Boolean> joinTeam (@RequestBody TeamJoinRequest teamJoinRequest, HttpServletRequest request){
+		User loginUser = userService.getLoginUser(request);
+		boolean result = teamService.joinTeam(teamJoinRequest,loginUser);
+		return ResultUtils.success(result);
+	}
+//	@Operation(summary = "分页分类查询队伍")
+//	@GetMapping("/list/page")
+//	public BaseResponse<Page<Team>> teamListByPage(@RequestBody TeamQuery teamQuery){
+//		if (teamQuery == null ){
+//			throw new BusinessException(ErrorCode.PARAMS_ERROR);
+//		}
+//		Team team = new Team();
+//		BeanUtils.copyProperties(teamQuery,team);
+//		QueryWrapper<Team> queryWrapper = new QueryWrapper(team);
+//		Page<Team> teamList = teamService.page(new Page<>(teamQuery.getPageNum(),teamQuery.getPageSize()),queryWrapper);
+//		if (teamList == null){
+//			throw new BusinessException(ErrorCode.SYSTEM_ERROR,"获取队伍列表错误");
+//		}
+//		return ResultUtils.success(teamList);
+//	}
 
 
 }

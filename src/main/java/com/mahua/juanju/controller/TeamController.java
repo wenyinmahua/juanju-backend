@@ -57,19 +57,7 @@ public class TeamController {
 		long teamId = teamService.addTeam(team,loginUser);
 		return ResultUtils.success(teamId);
 	}
-	@Operation(summary = "删除队伍")
-	@PostMapping("/delete")
-	public BaseResponse<Boolean> deleteTeam(Long id){
-		if(id == null || id <= 0){
-			throw new BusinessException(ErrorCode.PARAMS_ERROR);
-		}
-		boolean result = teamService.removeById(id);
-		if (!result){
-			throw new BusinessException(ErrorCode.SYSTEM_ERROR,"删除失败");
-		}
 
-		return ResultUtils.success(true);
-	}
 	@Operation(summary = "更新队伍")
 	@PutMapping("/update")
 	public BaseResponse<Boolean> updateTeam(@RequestBody TeamUpdateRequest teamUpdateRequest,HttpServletRequest request){
@@ -116,27 +104,33 @@ public class TeamController {
 		return ResultUtils.success(teamList);
 	}
 
+	@Operation(summary = "加入队伍")
 	@PostMapping("/join")
 	public BaseResponse<Boolean> joinTeam (@RequestBody TeamJoinRequest teamJoinRequest, HttpServletRequest request){
 		User loginUser = userService.getLoginUser(request);
 		boolean result = teamService.joinTeam(teamJoinRequest,loginUser);
 		return ResultUtils.success(result);
 	}
-//	@Operation(summary = "分页分类查询队伍")
-//	@GetMapping("/list/page")
-//	public BaseResponse<Page<Team>> teamListByPage(@RequestBody TeamQuery teamQuery){
-//		if (teamQuery == null ){
-//			throw new BusinessException(ErrorCode.PARAMS_ERROR);
-//		}
-//		Team team = new Team();
-//		BeanUtils.copyProperties(teamQuery,team);
-//		QueryWrapper<Team> queryWrapper = new QueryWrapper(team);
-//		Page<Team> teamList = teamService.page(new Page<>(teamQuery.getPageNum(),teamQuery.getPageSize()),queryWrapper);
-//		if (teamList == null){
-//			throw new BusinessException(ErrorCode.SYSTEM_ERROR,"获取队伍列表错误");
-//		}
-//		return ResultUtils.success(teamList);
-//	}
 
+	@Operation(summary = "退出队伍")
+	@PostMapping("/quit")
+	public BaseResponse quitTeam(Long teamId,HttpServletRequest request){
+		teamService.quitTeam(teamId,request);
+		return ResultUtils.success("退出队伍成功");
+	}
+
+
+	@Operation(summary = "删除队伍")
+	@PostMapping("/delete")
+	public BaseResponse<Boolean> deleteTeam(Long id){
+		if(id == null || id <= 0){
+			throw new BusinessException(ErrorCode.PARAMS_ERROR);
+		}
+		boolean result = teamService.removeById(id);
+		if (!result){
+			throw new BusinessException(ErrorCode.SYSTEM_ERROR,"删除失败");
+		}
+		return ResultUtils.success(true);
+	}
 
 }

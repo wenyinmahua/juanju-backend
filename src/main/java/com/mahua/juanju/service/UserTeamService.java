@@ -2,9 +2,7 @@ package com.mahua.juanju.service;
 
 import com.mahua.juanju.model.domain.UserTeam;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.mahua.juanju.model.vo.UserVO;
-
-import java.util.List;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
 * @author mahua

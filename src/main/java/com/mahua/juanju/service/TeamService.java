@@ -8,6 +8,7 @@ import com.mahua.juanju.model.dto.TeamQuery;
 import com.mahua.juanju.model.request.TeamJoinRequest;
 import com.mahua.juanju.model.request.TeamUpdateRequest;
 import com.mahua.juanju.model.vo.TeamUserVO;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
 * @author mahua
@@ -29,4 +30,6 @@ public interface TeamService extends IService<Team> {
 	boolean updateTeam(TeamUpdateRequest teamUpdateRequest, User loginUser);
 
 	boolean joinTeam(TeamJoinRequest teamJoinRequest,User loginUser);
+
+	boolean quitTeam(Long teamId, HttpServletRequest request);
 }

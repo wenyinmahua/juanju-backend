@@ -49,6 +49,7 @@ public class Team implements Serializable {
     /**
      * 队伍过期时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private Date expireTime;
 
     /**

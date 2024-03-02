@@ -54,16 +54,21 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
 	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public long addTeam(Team team, User loginUser) {
-		//1. 请求参数是否为空
+		// 1. 请求参数是否为空
 		if(team == null){
 			throw new BusinessException(ErrorCode.NULL_PARAMS);
 		}
-		//2. 是否登录，未登录不允许创建
+		// 判断队伍分类是否为空
+		String category = team.getCategory();
+		if (StringUtils.isBlank(category)){
+			throw new BusinessException(ErrorCode.PARAMS_ERROR,"队伍分类不能为空");
+		}
+		// 2. 是否登录，未登录不允许创建
 		if(loginUser == null){
 			throw new BusinessException(ErrorCode.NULL_PARAMS);
 		}
 		final long userId = loginUser.getId();
-		//3. 校验信息
+		// 3. 校验信息
 		//   1. 队伍人数 >=1 <=20
 		int maxNum = Optional.ofNullable(team.getMaxNum()).orElse(0);
 		if (maxNum <=1 ||maxNum >= 20 ){
@@ -72,7 +77,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
 		//   2. 队伍标题 <= 20
 		String name = team.getName();
 		if ( StringUtils.isBlank(name) || name.length() >= 20){
-			throw new BusinessException(ErrorCode.PARAMS_ERROR,"队伍名称不满足要求");
+			throw new BusinessException(ErrorCode.PARAMS_ERROR,"队伍名称应小于20");
 		}
 		//   3. 描述 <= 512
 		String description = team.getDescription();
@@ -148,6 +153,12 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
 			if (StringUtils.isNotBlank(searchText)){
 				queryWrapper.and(qw -> qw.like("name",searchText).or().like("description",searchText));
 			}
+
+			String category = teamQuery.getCategory();
+			if (StringUtils.isNotBlank(category)){
+				queryWrapper.eq("category",category);
+			}
+
 
 			String name = teamQuery.getName();
 			if(StringUtils.isNotBlank(name)){
@@ -347,6 +358,31 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
 		}
 		//移除关系
 		return userTeamService.remove(queryWrapper);
+	}
+
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public boolean deleteTeam(long id, HttpServletRequest request) {
+		// 1. 校验请求参数
+		if(id <= 0){
+			throw new BusinessException(ErrorCode.PARAMS_ERROR);
+		}
+		// 2. 判断队伍是否存在
+		Team team = this.getById(id);
+		if (team == null){
+			throw new BusinessException(ErrorCode.PARAMS_ERROR,"队伍不存在");
+		}
+		// 3. 检验是不是队伍的队长
+		User loginUser = userService.getLoginUser(request);
+		if ((long)loginUser.getId() != (long)team.getUserId()){
+			throw new BusinessException(ErrorCode.NO_AUTHORIZED,"只有队长才能删除该队伍");
+		}
+		// 4. 移除所有已经加入队伍的关联信息
+		QueryWrapper<UserTeam> queryWrapper = new QueryWrapper<>();
+		queryWrapper.eq("team_id", id);
+		userTeamService.remove(queryWrapper);
+		// 5. 删除队伍
+		return this.removeById(id);
 	}
 
 

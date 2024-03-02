@@ -11,6 +11,7 @@ public enum ErrorCode {
 	NULL_PARAMS(40001, "请求参数不能为空", ""),
 	NO_LOGIN(40100, "未登录", ""),
 	NO_AUTHORIZED(40101, "无权限", ""),
+	FORBIDDEN(40301,"禁止操作",""),
 //	USER_PASSWORD_ERROR(400, "密码错误", ""),
 	USER_ACCOUNT_EXIST(40002, "账号已存在", ""),
 	STU_ID_EXIST(40003, "学号已存在", ""),

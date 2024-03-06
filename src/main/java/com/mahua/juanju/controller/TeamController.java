@@ -8,12 +8,12 @@ import com.mahua.juanju.common.ErrorCode;
 import com.mahua.juanju.common.ResultUtils;
 import com.mahua.juanju.model.User;
 import com.mahua.juanju.model.domain.Team;
+import com.mahua.juanju.model.domain.UserTeam;
 import com.mahua.juanju.model.dto.TeamQuery;
 import com.mahua.juanju.model.request.TeamJoinRequest;
 import com.mahua.juanju.model.request.TeamRequest;
 import com.mahua.juanju.model.request.TeamUpdateRequest;
 import com.mahua.juanju.model.vo.TeamUserVO;
-import com.mahua.juanju.model.vo.UserVO;
 import com.mahua.juanju.service.TeamService;
 import com.mahua.juanju.service.UserService;
 import com.mahua.juanju.service.UserTeamService;
@@ -28,6 +28,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Tag(name="队伍接口")
 @RestController
@@ -104,6 +106,41 @@ public class TeamController {
 		return ResultUtils.success(teamList);
 	}
 
+	@Operation(summary = "获取我创建的队伍")
+	@GetMapping("/list/my/create")
+	public BaseResponse<Page<TeamUserVO>> myCreateTeamList(@ParameterObject TeamQuery teamQuery, HttpServletRequest request){
+		if (teamQuery == null ){
+			throw new BusinessException(ErrorCode.PARAMS_ERROR);
+		}
+		User loginUser = userService.getLoginUser(request);
+		teamQuery.setUserId(loginUser.getId());
+		Page<TeamUserVO> teamList = teamService.listTeams(teamQuery,true);
+		if (teamList == null){
+			throw new BusinessException(ErrorCode.SYSTEM_ERROR,"获取队伍列表错误");
+		}
+		return ResultUtils.success(teamList);
+	}
+
+	@Operation(summary = "获取我加入的队伍")
+	@GetMapping("/list/my/join")
+	public BaseResponse<Page<TeamUserVO>> myJoinTeamList(@ParameterObject TeamQuery teamQuery, HttpServletRequest request){
+		if (teamQuery == null ){
+			throw new BusinessException(ErrorCode.PARAMS_ERROR);
+		}
+		User loginUser = userService.getLoginUser(request);
+		QueryWrapper<UserTeam> queryWrapper = new QueryWrapper<>();
+		queryWrapper.eq("user_id",loginUser);
+		List <UserTeam> userTeamList = userTeamService.list(queryWrapper);
+		Map<Long,List<UserTeam>> listMap = userTeamList.stream().collect(Collectors.groupingBy(UserTeam::getTeamId));
+		List<Long> idList = new ArrayList<>(listMap.keySet());
+		teamQuery.setIdList(idList);
+		Page<TeamUserVO> teamList = teamService.listTeams(teamQuery,true);
+		if (teamList == null){
+			throw new BusinessException(ErrorCode.SYSTEM_ERROR,"获取队伍列表错误");
+		}
+		return ResultUtils.success(teamList);
+	}
+
 	@Operation(summary = "加入队伍")
 	@PostMapping("/join")
 	public BaseResponse<Boolean> joinTeam (@RequestBody TeamJoinRequest teamJoinRequest, HttpServletRequest request){
@@ -120,9 +157,12 @@ public class TeamController {
 	}
 
 
-	@Operation(summary = "删除队伍")
+	@Operation(summary = "解散队伍")
 	@PostMapping("/delete")
-	public BaseResponse<Boolean> deleteTeam(long id,HttpServletRequest request){
+	public BaseResponse<Boolean> deleteTeam(@RequestBody long id,HttpServletRequest request){
+		if ( id <= 0){
+			throw new BusinessException(ErrorCode.PARAMS_ERROR);
+		}
 		boolean result = teamService.deleteTeam(id,request);
 		if (!result){
 			throw new BusinessException(ErrorCode.SYSTEM_ERROR,"删除失败");
@@ -130,28 +170,6 @@ public class TeamController {
 		return ResultUtils.success(true);
 	}
 
-	@PostMapping("/upload")
-	public BaseResponse upload(){
-//	public BaseResponse upload(MultipartFile file){
-//		log.info("文件上传{}",file);
-//		if (file == null){
-//			return ResultUtils.error(ErrorCode.PARAMS_ERROR,"文件不存在");
-//		}
-//		try {
-//			String originalFilename = file.getOriginalFilename();
-//			String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-//			//将图片使用UUID进行重命名，防止上传到阿里云的图片因为命名重复而冲突
-//			String objectname = UUID.randomUUID().toString() + extension;
-//			//调用阿里云OSS工具上传图片
-//			String filePath = aliOssUtil.upload(file.getInputStream(),objectname);
-//			//图片上传成功，返回文件路径
-//			//https://web-tlias-mmh.oss-cn-beijing.aliyuncs.com/2b502878-11f1-431c-a17f-9665c7cc7dac.jpg
-//			return ResultUtils.success(filePath);
-//		} catch (IOException e) {
-//			log.error("文件上传失败{}",e);
-//		}
-//		return ResultUtils.error(ErrorCode.PARAMS_ERROR);
-		return ResultUtils.success("okokoko");
-	}
+
 
 }

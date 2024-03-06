@@ -6,6 +6,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 队伍查询封装类
@@ -17,6 +18,11 @@ public class TeamQuery implements Serializable {
 	 * 队伍id
 	 */
 	private Long id;
+
+	/**
+	 * 已加入的队伍id列表
+	 */
+	private List<Long> idList;
 
 	/**
 	 * 搜索关键词（同时对队伍名称和队伍描述生效）

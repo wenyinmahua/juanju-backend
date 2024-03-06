@@ -149,6 +149,11 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
 				queryWrapper.eq("user_id",userId);
 			}
 
+			List<Long> idList = teamQuery.getIdList();
+			if (!CollectionUtils.isEmpty(idList)){
+				queryWrapper.in("id",idList);
+			}
+
 			String searchText = teamQuery.getSearchText();
 			if (StringUtils.isNotBlank(searchText)){
 				queryWrapper.and(qw -> qw.like("name",searchText).or().like("description",searchText));
@@ -176,9 +181,9 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
 			}
 			if(!isAdmin && !statusEnum.equals(TeamStatusEnum.PUBLIC)){
 				throw new BusinessException(ErrorCode.NO_AUTHORIZED);
+			}else {
+				queryWrapper.eq("status", statusEnum.getValue()).or().eq("status",TeamStatusEnum.SECRET.getValue());
 			}
-			queryWrapper.eq("status",statusEnum.getValue());
-
 			Integer maxNum = teamQuery.getMaxNum();;
 			if (maxNum != null && maxNum > 1){
 				queryWrapper.eq("max_num",maxNum);
@@ -225,7 +230,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
 		}
 		Long teamId = teamUpdateRequest.getId();
 		if (teamId == null || teamId <= 0){
-			throw new BusinessException(ErrorCode.NULL_PARAMS);
+			throw new BusinessException(ErrorCode.PARAMS_ERROR);
 		}
 		Team olderTeam = this.getById(teamId);
 		if (olderTeam == null){
@@ -257,8 +262,8 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
 			throw new BusinessException(ErrorCode.NULL_PARAMS);
 		}
 
-		Long teamId = teamJoinRequest.getTeamId();
-		if (teamId <= 0 || teamId == null){
+		long teamId = teamJoinRequest.getTeamId();
+		if (teamId <= 0){
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
 		}
 		Team team = this.getById(teamId);
@@ -389,9 +394,8 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
 	private boolean teamNotUpdate(Team olderTeam, TeamUpdateRequest teamUpdateRequest){
 		return olderTeam.getName().equals(teamUpdateRequest.getName()) &&
 				olderTeam.getTeamPassword().equals(teamUpdateRequest.getTeamPassword()) &&
-				olderTeam.getAvatarUrl().equals(teamUpdateRequest.getAvatarUrl()) &&
 				olderTeam.getDescription().equals(teamUpdateRequest.getDescription()) &&
-				olderTeam.getCategory().equals(teamUpdateRequest.getCategory()) &&
+//				olderTeam.getCategory().equals(teamUpdateRequest.getCategory()) &&
 //				olderTeam.getMaxNum().equals(teamUpdateRequest.getMaxNum()) &&
 				olderTeam.getStatus().equals(teamUpdateRequest.getStatus()) &&
 				olderTeam.getExpireTime().equals(teamUpdateRequest.getExpireTime())

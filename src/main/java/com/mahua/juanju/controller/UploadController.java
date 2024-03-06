@@ -3,11 +3,16 @@ package com.mahua.juanju.controller;
 import com.mahua.juanju.common.BaseResponse;
 import com.mahua.juanju.common.ErrorCode;
 import com.mahua.juanju.common.ResultUtils;
+import com.mahua.juanju.model.User;
+import com.mahua.juanju.service.UserService;
 import com.mahua.juanju.utils.AliOSSUtil;
+import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,8 +26,15 @@ public class UploadController {
 	@Autowired
 	private AliOSSUtil aliOssUtil;
 	//得到上传路径
+
+	@Resource
+	private UserService userService;
 	@PostMapping("/upload")
-	public BaseResponse upload(MultipartFile file){
+	public BaseResponse upload(MultipartFile file, HttpServletRequest request){
+		User loginUser = userService.getLoginUser(request);
+		if (loginUser == null){
+			return ResultUtils.error(ErrorCode.NO_LOGIN);
+		}
 		log.info("文件上传{}",file);
 		if (file == null){
 			return ResultUtils.error(ErrorCode.PARAMS_ERROR,"文件不存在");

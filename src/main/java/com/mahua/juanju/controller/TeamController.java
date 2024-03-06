@@ -129,7 +129,7 @@ public class TeamController {
 		}
 		User loginUser = userService.getLoginUser(request);
 		QueryWrapper<UserTeam> queryWrapper = new QueryWrapper<>();
-		queryWrapper.eq("user_id",loginUser);
+		queryWrapper.eq("user_id",loginUser.getId());
 		List <UserTeam> userTeamList = userTeamService.list(queryWrapper);
 		Map<Long,List<UserTeam>> listMap = userTeamList.stream().collect(Collectors.groupingBy(UserTeam::getTeamId));
 		List<Long> idList = new ArrayList<>(listMap.keySet());

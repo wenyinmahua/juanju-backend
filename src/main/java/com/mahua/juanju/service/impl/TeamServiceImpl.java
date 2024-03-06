@@ -182,8 +182,11 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
 			if(!isAdmin && !statusEnum.equals(TeamStatusEnum.PUBLIC)){
 				throw new BusinessException(ErrorCode.NO_AUTHORIZED);
 			}else {
-				queryWrapper.eq("status", statusEnum.getValue()).or().eq("status",TeamStatusEnum.SECRET.getValue());
-			}
+				int statueValue = statusEnum.getValue();
+				queryWrapper.and(wrapper -> {
+					wrapper.eq("status", statueValue);
+					wrapper.or().eq("status", TeamStatusEnum.SECRET.getValue());
+				});			}
 			Integer maxNum = teamQuery.getMaxNum();;
 			if (maxNum != null && maxNum > 1){
 				queryWrapper.eq("max_num",maxNum);

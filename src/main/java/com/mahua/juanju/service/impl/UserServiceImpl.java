@@ -11,18 +11,17 @@ import com.mahua.juanju.common.ErrorCode;
 import com.mahua.juanju.model.User;
 import com.mahua.juanju.service.UserService;
 import com.mahua.juanju.mapper.UserMapper;
+import com.mahua.juanju.utils.AlgorithmUtils;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.math3.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -377,6 +376,62 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 	@Override
 	public boolean isAdmin(User loginUser){
 		return loginUser != null && loginUser.getUserRole() == ADMIN_ROLE;
+	}
+
+	@Override
+	public List<User> matchUsers(long num, User loginUser) {
+		String tags = loginUser.getTags();
+		Gson gson = new Gson();
+		List<String> tagList = gson.fromJson(tags, new TypeToken<List<String>>() {
+		}.getType());
+		QueryWrapper queryWrapper = new QueryWrapper();
+		queryWrapper.select("id","tags");
+		queryWrapper.isNotNull("tags");
+		List<User> userList = this.list(queryWrapper);
+		// 用户列表的下标 ==》 相似度
+		List<Pair<User,Long>> list = new ArrayList<>();
+		// 依次计算所有用户和当前用户的相似度
+		for (int i = 0; i < userList.size(); i++) {
+			User user = userList.get(i);
+			String userTags = user.getTags();
+			if (StringUtils.isBlank(userTags) || (long)user.getId() == (long) loginUser.getId()){
+				continue;
+			}
+			List<String> userTagList = gson.fromJson(userTags, new TypeToken<List<String>>() {
+			}.getType());
+			long distance = AlgorithmUtils.minDistance(tagList, userTagList);
+			list.add(new Pair<>(user,distance));
+		}
+//		List<Integer> maxDistanceIndexList = indexSDistanceMap.keySet().stream().limit(num).collect(Collectors.toList());
+//		List<User> userList1  = maxDistanceIndexList.stream().
+//				map(index -> {
+//			return getSafetyUser(userList.get(index));
+//		}).collect(Collectors.toList());
+		// 按编辑距离由小到大排序
+		List<Pair<User,Long>> topUserPairList = list.stream()
+				.sorted((a,b) -> (int)(a.getValue() - b.getValue())).
+				limit(num)
+				.collect(Collectors.toList());
+		for (Pair<User,Long> userLongPair : topUserPairList){
+			System.out.println(userLongPair.getKey().getId()+":"+userLongPair.getValue());
+		}
+//		List<User> userVOList =	topUserPairList.stream().map(Pair::getKey).collect(Collectors.toList());
+		List<Long> userIdList = topUserPairList.stream().map(pair -> pair.getKey().getId()).collect(Collectors.toList());
+		QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
+		userQueryWrapper.in("id",userIdList);
+
+//		下面查询的结果是按id的顺序返回，前面排序无效
+//		List<User> users = this.list(userQueryWrapper).stream().map(user -> getSafetyUser(user)).collect(Collectors.toList());
+//		return users;
+
+//		修改为
+		Map<Long,List<User>> userIdUserListMap = this.list(userQueryWrapper).stream().map(user -> getSafetyUser(user)).collect(Collectors.groupingBy(User::getId));
+		List<User> finalUserList = new ArrayList<>();
+		for (Long userId : userIdList){
+			finalUserList.add(userIdUserListMap.get(userId).get(0));
+		}
+		return finalUserList;
+
 	}
 
 }

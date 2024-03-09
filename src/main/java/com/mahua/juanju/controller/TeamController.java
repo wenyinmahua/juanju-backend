@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Tag(name="队伍接口")
@@ -92,7 +93,7 @@ public class TeamController {
 		return ResultUtils.success(team);
 	}
 
-	@Operation(summary = "分页分类查询队伍")
+	@Operation(summary = "分页查询队伍")
 	@GetMapping("/list")
 	public BaseResponse<Page<TeamUserVO>> teamList(@ParameterObject TeamQuery teamQuery, HttpServletRequest request){
 		if (teamQuery == null ){
@@ -103,6 +104,20 @@ public class TeamController {
 		if (teamList == null){
 			throw new BusinessException(ErrorCode.SYSTEM_ERROR,"获取队伍列表错误");
 		}
+		List<Long> teamIdList = teamList.getRecords().stream().map(TeamUserVO::getId).collect(Collectors.toList());
+		QueryWrapper<UserTeam> queryWrapper = new QueryWrapper();
+		try{
+			User loginUser = userService.getLoginUser(request);
+			queryWrapper.eq("user_id",loginUser.getId());
+			queryWrapper.in("team_id",teamIdList);
+			List<UserTeam> userTeamList = userTeamService.list(queryWrapper);
+			// 已加入队伍 id 集合
+			Set<Long> hasJoinTeamIdSet = userTeamList.stream().map(UserTeam::getTeamId).collect(Collectors.toSet());
+			teamList.getRecords().forEach(team->{
+				boolean hasJoin = hasJoinTeamIdSet.contains(team.getId());
+				team.setHasJoin(hasJoin);
+			});
+		}catch (Exception e){}
 		return ResultUtils.success(teamList);
 	}
 
@@ -150,16 +165,16 @@ public class TeamController {
 	}
 
 	@Operation(summary = "退出队伍")
-	@PostMapping("/quit")
-	public BaseResponse quitTeam(Long teamId,HttpServletRequest request){
-		teamService.quitTeam(teamId,request);
+	@PostMapping("/quit/{id}")
+	public BaseResponse quitTeam(@PathVariable("id") long id,HttpServletRequest request){
+		teamService.quitTeam(id,request);
 		return ResultUtils.success("退出队伍成功");
 	}
 
 
 	@Operation(summary = "解散队伍")
-	@PostMapping("/delete")
-	public BaseResponse<Boolean> deleteTeam(@RequestBody long id,HttpServletRequest request){
+	@PostMapping("/delete/{id}")
+	public BaseResponse<Boolean> deleteTeam(@PathVariable("id") long id,HttpServletRequest request){
 		if ( id <= 0){
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
 		}

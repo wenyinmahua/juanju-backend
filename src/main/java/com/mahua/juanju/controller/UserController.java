@@ -119,7 +119,7 @@ public class UserController {
 	}
 
 	@GetMapping("/recommend")
-	@Operation(summary = "用户搜索")
+	@Operation(summary = "用户推荐")
 	public BaseResponse<Page<User>> recommendUsers( long pageSize,long pageNum,HttpServletRequest request){
 		//如果有缓存，直接读缓存
 		User loginUser = userService.getLoginUser(request);
@@ -147,6 +147,15 @@ public class UserController {
 	}
 
 
+	@Operation(summary = "获取最匹配的用户")
+	@GetMapping("/match")
+	public BaseResponse<List<User>> matchUsers( long num,HttpServletRequest request){
+		if (num < 0 || num >= 20){
+			throw new BusinessException(ErrorCode.PARAMS_ERROR);
+		}
+		User loginUser = userService.getLoginUser(request);
+		return ResultUtils.success(userService.matchUsers(num,loginUser));
+	}
 	@GetMapping("/search/tags")
 	@Operation(summary = "根据标签搜索用户")
 	public BaseResponse<IPage<User>> searchUsersByTags(Long pageSize,Long pageNum, @RequestParam(required = false) List<String> tagNameList){
@@ -158,6 +167,7 @@ public class UserController {
 	}
 
 	@PostMapping("/update")
+	@Operation(summary = "更新用户信息")
 	public BaseResponse<Integer> update(@RequestBody User user, HttpServletRequest request){
 		//1.校验参数是否为空
 		if(user == null){

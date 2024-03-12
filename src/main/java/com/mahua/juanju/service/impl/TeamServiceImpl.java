@@ -22,7 +22,10 @@ import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -31,6 +34,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
 * @author mahua
@@ -50,6 +55,9 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
 
 	@Resource
 	private TeamMapper teamMapper;
+
+	@Resource
+	private RedissonClient redissonClient;
 
 	@Override
 	@Transactional(rollbackFor = Exception.class)
@@ -179,22 +187,25 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
 			if (statusEnum == null){
 				statusEnum = TeamStatusEnum.PUBLIC;
 			}
-			if(!isAdmin && !statusEnum.equals(TeamStatusEnum.PUBLIC)){
+			if(!isAdmin && statusEnum.equals(TeamStatusEnum.PRIVATE)) {
 				throw new BusinessException(ErrorCode.NO_AUTHORIZED);
-			}else {
-				int statueValue = statusEnum.getValue();
-				queryWrapper.and(wrapper -> {
-					wrapper.eq("status", statueValue);
-					wrapper.or().eq("status", TeamStatusEnum.SECRET.getValue());
-				});			}
-			Integer maxNum = teamQuery.getMaxNum();;
+			}
+//			else {
+//				int statueValue = statusEnum.getValue();
+//				queryWrapper.and(wrapper -> {
+//					wrapper.eq("status", statueValue);
+//					wrapper.or().eq("status", TeamStatusEnum.SECRET.getValue());
+//				});
+//			}
+			queryWrapper.eq("status",statusEnum.getValue());
+			Integer maxNum = teamQuery.getMaxNum();
 			if (maxNum != null && maxNum > 1){
 				queryWrapper.eq("max_num",maxNum);
 			}
 
 		}
 		queryWrapper.and(qw -> qw.gt("expire_time", new Date()).or().isNull("expire_time"));
-
+		queryWrapper.orderByAsc("update_time");
 		List<Team> teamList = this.list(queryWrapper);
 		if (CollectionUtils.isEmpty(teamList)){
 			return new Page<>();
@@ -287,31 +298,48 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
 				throw new BusinessException(ErrorCode.PARAMS_ERROR,"密码错误");
 			}
 		}
-		// 用户已加入队伍数量
 		long userId = loginUser.getId();
-		QueryWrapper<UserTeam> queryWrapper = new QueryWrapper<>();
-		queryWrapper.eq("user_id",userId);
-		long hasUserJoinNum = userTeamService.count(queryWrapper);
-		if (hasUserJoinNum > 5){
-			throw new BusinessException(ErrorCode.PARAMS_ERROR,"最多只能创建和加入五个队伍");
+		// 分布式锁解决用户加入队伍数量问题
+		RLock lock = redissonClient.getLock("juanju:join_time");
+		try {
+			while(true){
+			// 等待时间为 0，抢锁只抢一次，抢不到就放弃，锁存在时间为 -1
+			if(lock.tryLock(0,-1, TimeUnit.MILLISECONDS)){
+				QueryWrapper<UserTeam> queryWrapper = new QueryWrapper<>();
+				queryWrapper.eq("user_id",userId);
+				long hasUserJoinNum = userTeamService.count(queryWrapper);
+				if (hasUserJoinNum > 5){
+					throw new BusinessException(ErrorCode.PARAMS_ERROR,"最多只能创建和加入五个队伍");
+				}
+				// 不能重复加入队伍
+				queryWrapper.eq("team_id",teamId);
+				long userJoinTeam = userTeamService.count(queryWrapper);
+				if (userJoinTeam > 0){
+					throw new BusinessException(ErrorCode.PARAMS_ERROR,"已加入该队伍");
+				}
+				// 已加入队伍的人数
+				long numberNum = getNumberNum(teamId);
+				if (numberNum >= team.getMaxNum()){
+					throw new BusinessException(ErrorCode.PARAMS_ERROR,"队伍人数已达到上限");
+				}
+				UserTeam userTeam = new UserTeam();
+				userTeam.setUserId(userId);
+				userTeam.setTeamId(teamId);
+				userTeam.setJoinTime(new Date());
+
+				return userTeamService.save(userTeam);
+			}
+			}
+		} catch (InterruptedException e) {
+			log.error("doCacheRecommendUser err",e);
+			return false;
+		}finally {
+			if(lock.isHeldByCurrentThread()){
+				System.out.println("release lock：" + Thread.currentThread().getId());
+				lock.unlock();
+			}
 		}
-		// 不能重复加入队伍
-		queryWrapper.eq("team_id",teamId);
-		long userJoinTeam = userTeamService.count(queryWrapper);
-		if (userJoinTeam > 0){
-			throw new BusinessException(ErrorCode.PARAMS_ERROR,"已加入该队伍");
-		}
-		// 已加入队伍的人数
-		long numberNum = getNumberNum(teamId);
-		if (numberNum >= team.getMaxNum()){
-			throw new BusinessException(ErrorCode.PARAMS_ERROR,"队伍人数已达到上限");
-		}
-		UserTeam userTeam = new UserTeam();
-		userTeam.setUserId(userId);
-		userTeam.setTeamId(teamId);
-		userTeam.setJoinTime(new Date());
-		userTeamService.save(userTeam);
-		return true;
+
 	}
 
 

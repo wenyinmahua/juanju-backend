@@ -32,4 +32,10 @@
         is_delete,user_role,stu_id,
         tags,profile
     </sql>
+    <select id="getRandomUser" resultType="com.mahua.juanju.model.User">
+        select * from `user`
+        where id >= (select floor(rand()*(select max(id) from `user`)))
+        order by id
+        limit 10;
+    </select>
 </mapper>

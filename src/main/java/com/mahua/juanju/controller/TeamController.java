@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/team")
 @Slf4j
-@CrossOrigin(origins = {"http://localhost:5173","http://localhost:8000"},allowCredentials = "true")
+@CrossOrigin(origins = {"http://localhost:5173","http://localhost:8000","http://localhost:3000"},allowCredentials = "true")
 public class TeamController {
 
 	@Resource
@@ -118,6 +118,11 @@ public class TeamController {
 				team.setHasJoin(hasJoin);
 			});
 		}catch (Exception e){}
+		QueryWrapper<UserTeam> userTeamJoinQueryWrapper = new QueryWrapper<>();
+		userTeamJoinQueryWrapper.in("team_id",teamIdList);
+		List<UserTeam> userTeamList = userTeamService.list(userTeamJoinQueryWrapper);
+		Map<Long,List<UserTeam>> teamIdUserTeamList = userTeamList.stream().collect(Collectors.groupingBy(UserTeam::getTeamId));
+		teamList.getRecords().forEach(team->team.setHasJoinNum(teamIdUserTeamList.getOrDefault(team.getId(),new ArrayList<>()).size()));
 		return ResultUtils.success(teamList);
 	}
 

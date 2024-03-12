@@ -54,10 +54,3 @@ springdoc:
     - group: 'default'
       paths-to-match: '/**'
       packages-to-scan: com.mahua.juanju.controller
-juanju:
-  alioss:
-    endpoint: oss-cn-beijing.aliyuncs.com
-    accessKeyId: LTAI5tJE7wkcvP31kWkwSgmk
-    accessKeySecret: GwF4roG8mbJMTURJbXSA5SesAR6sgX
-    bucketName: web-tlias-mmh
-

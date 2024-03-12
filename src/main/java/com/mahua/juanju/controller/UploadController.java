@@ -21,7 +21,7 @@ import java.util.UUID;
 
 @RestController
 @Slf4j
-@CrossOrigin(origins = {"http://localhost:5173","http://localhost:8000"},allowCredentials = "true")
+@CrossOrigin(origins = {"http://localhost:5173","http://localhost:8000","http://localhost:3000"},allowCredentials = "true")
 public class UploadController {
 	@Autowired
 	private AliOSSUtil aliOssUtil;

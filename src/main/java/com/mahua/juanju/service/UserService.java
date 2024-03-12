@@ -1,8 +1,10 @@
 package com.mahua.juanju.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.mahua.juanju.model.User;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.mahua.juanju.model.vo.UserVO;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
@@ -62,4 +64,6 @@ public interface  UserService extends IService<User> {
 	 * @return
 	 */
 	List<User> matchUsers(long num, User loginUser);
+
+	Page<UserVO> recommend(long pageNum);
 }

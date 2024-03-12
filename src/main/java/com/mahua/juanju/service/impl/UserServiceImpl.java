@@ -9,6 +9,7 @@ import com.google.gson.reflect.TypeToken;
 import com.mahua.juanju.Exception.BusinessException;
 import com.mahua.juanju.common.ErrorCode;
 import com.mahua.juanju.model.User;
+import com.mahua.juanju.model.vo.UserVO;
 import com.mahua.juanju.service.UserService;
 import com.mahua.juanju.mapper.UserMapper;
 import com.mahua.juanju.utils.AlgorithmUtils;
@@ -17,6 +18,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Pair;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
@@ -26,6 +28,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.mahua.juanju.constant.SystemConstants.Page_Size;
 import static com.mahua.juanju.constant.UserConstant.ADMIN_ROLE;
 import static com.mahua.juanju.constant.UserConstant.USER_LOGIN_STATUS;
 
@@ -45,6 +48,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 	 */
 	private static final String SALT = "mahua";
 
+	/**
+	 * 启用随机展示用户最低限度
+	 */
+	public static final int MINIMUM_ENABLE_RANDOM_USER_NUM = 10;
 
 	@Override
 	public long userRegister(String userAccount, String userPassword, String checkPassword,String stuId) {
@@ -307,7 +314,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 		if (userId <= 0){
 			throw new BusinessException(ErrorCode.NULL_PARAMS);
 		}
-		if (user.getId() != loginUser.getId() && !isAdmin(loginUser) ){
+		if ((long)user.getId() != (long)loginUser.getId() && !isAdmin(loginUser) ){
 			throw new BusinessException(ErrorCode.NO_AUTHORIZED);
 		}
 		User oldUser = userMapper.selectById(user.getId());
@@ -432,6 +439,35 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 		}
 		return finalUserList;
 
+	}
+
+	@Override
+	public Page<UserVO> recommend(long pageNum) {
+		long count = this.count();
+		if (count <= MINIMUM_ENABLE_RANDOM_USER_NUM){
+			Page<User> userPage = page(new Page<>(pageNum,Page_Size));
+			List<UserVO> userVOList= userPage.getRecords().stream().map((user)->{
+				UserVO userVO = new UserVO();
+				BeanUtils.copyProperties(user,userVO);
+				return userVO;
+			}).collect(Collectors.toList());
+			Page<UserVO> userVOPage = new Page<>();
+			userVOPage.setRecords(userVOList);
+			return userVOPage;
+		}
+		return this.getRandomUser();
+	}
+
+	private Page<UserVO> getRandomUser() {
+		List<User> randomUserList = userMapper.getRandomUser();
+		List<UserVO> userVOList = randomUserList.stream().map(user -> {
+			UserVO userVO = new UserVO();
+			BeanUtils.copyProperties(user,userVO);
+			return userVO;
+		}).collect(Collectors.toList());
+		Page<UserVO> userVOPage= new Page<>();
+		userVOPage.setRecords(userVOList);
+		return userVOPage;
 	}
 
 }

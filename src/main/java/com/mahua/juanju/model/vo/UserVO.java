@@ -68,7 +68,7 @@ public class UserVO implements Serializable {
      * 1-管理员
      * 2-超级管理员
      */
-    private Integer userRole;
+//    private Integer userRole;
 
     /**
      * 学号

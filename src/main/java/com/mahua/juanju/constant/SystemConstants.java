@@ -1,7 +1,5 @@
 package com.mahua.juanju.constant;
 
-public final class SystemConstants {
-	private SystemConstants() {
-	}
-	public final static  int Page_Size = 10;
+public interface SystemConstants {
+	int Page_Size = 10;
 }

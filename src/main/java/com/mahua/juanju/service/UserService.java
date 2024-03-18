@@ -49,7 +49,9 @@ public interface  UserService extends IService<User> {
 
 	IPage<User> searchUsersByTags(Long pageSize, Long pageNum, List<String> tagNameList);
 
-	int updateUser(User user,User loginUser);
+	List<User> searchUsersByTags(List<String> tagNameList);
+
+	int updateUser(User user, User loginUser);
 
 	User getLoginUser(HttpServletRequest request);
 
@@ -63,7 +65,9 @@ public interface  UserService extends IService<User> {
 	 * @param loginUser
 	 * @return
 	 */
-	List<User> matchUsers(long num, User loginUser);
+	List<UserVO> matchUsers(long num, User loginUser);
 
 	Page<UserVO> recommend(long pageNum);
+
+	void updatePassword(String oldPassword, String newPassword, String checkPassword, HttpServletRequest request);
 }

@@ -2,6 +2,7 @@ package com.mahua.juanju.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.conditions.update.UpdateChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.Gson;
@@ -19,11 +20,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Pair;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -47,6 +51,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 	 * 盐值，混淆密码
 	 */
 	private static final String SALT = "mahua";
+
+	@Resource
+	private RedisTemplate redisTemplate;
 
 	/**
 	 * 启用随机展示用户最低限度
@@ -244,69 +251,69 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 		return userPageList;
 	}
 
-//	/**
-//	 * 在内存中查询用户
-//	 *
-//	 * @param tagNameList 查询的用户需要具有的标签
-//	 * @return
-//	 */
+	/**
+	 * 在内存中查询用户
+	 *
+	 * @param tagNameList 查询的用户需要具有的标签
+	 * @return
+	 */
 
-//	@Override
-//	public List<User> searchUsersByTags(List<String> tagNameList){
-//		if (CollectionUtils.isEmpty(tagNameList)){
-//			throw new BusinessException(ErrorCode.NULL_PARAMS);
-//		}
-//		//SQL查询
-//		/*QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-//		for (String tageName : tagNameList) {
-//			queryWrapper = queryWrapper.like("tags",tageName);
-//		}
-//		List<User> userList = userMapper.selectList(queryWrapper);
-//		userList.forEach(user ->{
-//			getSafetyUser(user);
-//		});
-//		userList.forEach(this::getSafetyUser);
-//		return userList.stream().map(this::getSafetyUser).collect(Collectors.toList());
-//*/
-//		//内存查询
-//		//1.查询所有的用户
-//		QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-//		for (String tageName : tagNameList) {
-//			queryWrapper = queryWrapper.like("tags",tageName);
-//		}
-//		List<User> userList = userMapper.selectList(queryWrapper);
-//		//2.在内存中判断是否包含要求的标签，需要将Json转换为java对象（String）格式,反序列化
-//		Gson gson = new Gson();
-//		/*for (User user : userList) {
-//			String tagStr = user.getTags();
-//			Set<String> tempTagNameSet = gson.fromJson(tagStr,new TypeToken<Set<String>>(){}.getType());
-//			for (String tagName : tempTagNameSet) {
-//				if (!tempTagNameSet.contains(tagName)){
-//					return false;
-//				}
-//			}
-//			return true;
-//		}*/
-//		userList = userList.stream().filter(user ->{
-//			String tagStr = user.getTags();
-//			if (StringUtils.isEmpty(tagStr)){
-//				return false;
-//			}
-//			//Json 转换为String类型
-//			Set<String> tempTagNameSet = gson.fromJson(tagStr,new TypeToken<Set<String>>(){}.getType());
-//			//如果取得的结果为空，那么就将其变为一个HashSet对象，Optional执行的内容类似于if得作用
-//			tempTagNameSet = Optional.ofNullable(tempTagNameSet).orElse(new HashSet<>());
-//			for (String tagName : tempTagNameSet) {
-//				if (!tempTagNameSet.contains(tagName)){
-//					return false;
-//				}
-//			}
-//			return true;
-//		}).map(this::getSafetyUser).collect(Collectors.toList());
-//		return userList;
-//
-//
-//	}
+	@Override
+	public List<User> searchUsersByTags(List<String> tagNameList){
+		if (CollectionUtils.isEmpty(tagNameList)){
+			throw new BusinessException(ErrorCode.NULL_PARAMS);
+		}
+		//SQL查询
+		/*QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+		for (String tageName : tagNameList) {
+			queryWrapper = queryWrapper.like("tags",tageName);
+		}
+		List<User> userList = userMapper.selectList(queryWrapper);
+		userList.forEach(user ->{
+			getSafetyUser(user);
+		});
+		userList.forEach(this::getSafetyUser);
+		return userList.stream().map(this::getSafetyUser).collect(Collectors.toList());
+*/
+		//内存查询
+		//1.查询所有的用户
+		QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+		for (String tageName : tagNameList) {
+			queryWrapper = queryWrapper.like("tags",tageName);
+		}
+		List<User> userList = userMapper.selectList(queryWrapper);
+		//2.在内存中判断是否包含要求的标签，需要将Json转换为java对象（String）格式,反序列化
+		Gson gson = new Gson();
+		/*for (User user : userList) {
+			String tagStr = user.getTags();
+			Set<String> tempTagNameSet = gson.fromJson(tagStr,new TypeToken<Set<String>>(){}.getType());
+			for (String tagName : tempTagNameSet) {
+				if (!tempTagNameSet.contains(tagName)){
+					return false;
+				}
+			}
+			return true;
+		}*/
+		userList = userList.stream().filter(user ->{
+			String tagStr = user.getTags();
+			if (StringUtils.isEmpty(tagStr)){
+				return false;
+			}
+			//Json 转换为String类型
+			Set<String> tempTagNameSet = gson.fromJson(tagStr,new TypeToken<Set<String>>(){}.getType());
+			//如果取得的结果为空，那么就将其变为一个HashSet对象，Optional执行的内容类似于if得作用
+			tempTagNameSet = Optional.ofNullable(tempTagNameSet).orElse(new HashSet<>());
+			for (String tagName : tempTagNameSet) {
+				if (!tempTagNameSet.contains(tagName)){
+					return false;
+				}
+			}
+			return true;
+		}).map(this::getSafetyUser).collect(Collectors.toList());
+		return userList;
+
+
+	}
 
 	@Override
 	public int updateUser(User user, User loginUser) {
@@ -386,7 +393,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 	}
 
 	@Override
-	public List<User> matchUsers(long num, User loginUser) {
+	public List<UserVO> matchUsers(long num, User loginUser) {
+		String key = String.format("juanju:user:match:%s",loginUser.getId());
+		ValueOperations valueOperations = redisTemplate.opsForValue();
+		List<UserVO> finalUserList;
+		finalUserList = (List<UserVO>) valueOperations.get(key);
+		if (finalUserList != null){
+			return finalUserList;
+		}
 		String tags = loginUser.getTags();
 		Gson gson = new Gson();
 		List<String> tagList = gson.fromJson(tags, new TypeToken<List<String>>() {
@@ -427,15 +441,24 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 		QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
 		userQueryWrapper.in("id",userIdList);
 
-//		下面查询的结果是按id的顺序返回，前面排序无效
-//		List<User> users = this.list(userQueryWrapper).stream().map(user -> getSafetyUser(user)).collect(Collectors.toList());
-//		return users;
+/*
+		下面查询的结果是按id的顺序返回，前面排序无效
+		List<User> users = this.list(userQueryWrapper).stream().map(user -> getSafetyUser(user)).collect(Collectors.toList());
+		return users;
+*/
 
 //		修改为
+		finalUserList = new ArrayList<>();
 		Map<Long,List<User>> userIdUserListMap = this.list(userQueryWrapper).stream().map(user -> getSafetyUser(user)).collect(Collectors.groupingBy(User::getId));
-		List<User> finalUserList = new ArrayList<>();
 		for (Long userId : userIdList){
-			finalUserList.add(userIdUserListMap.get(userId).get(0));
+			UserVO userVO = new UserVO();
+			BeanUtils.copyProperties(userIdUserListMap.get(userId).get(0),userVO);
+			finalUserList.add(userVO);
+		}
+		try {
+			valueOperations.set(key,finalUserList,24, TimeUnit.HOURS);
+		} catch (Exception e) {
+			log.info("redis set key err",e);
 		}
 		return finalUserList;
 
@@ -456,6 +479,28 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 			return userVOPage;
 		}
 		return this.getRandomUser();
+	}
+
+	@Override
+	public void updatePassword(String oldPassword, String newPassword, String checkPassword, HttpServletRequest request) {
+		if (StringUtils.isAnyBlank(oldPassword,newPassword,checkPassword)){
+			throw new BusinessException(ErrorCode.PARAMS_ERROR);
+		}
+		if (!newPassword.equals(checkPassword)){
+			throw new BusinessException(ErrorCode.PARAMS_ERROR,"两次密码不一致");
+		}
+		User loginUser = this.getLoginUser(request);
+		QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+		queryWrapper.select("id","user_password").eq("id",loginUser.getId());
+		User user = getOne(queryWrapper);
+		if (!oldPassword.equals(user.getUserPassword())){
+			throw new BusinessException(ErrorCode.PARAMS_ERROR,"原密码错误");
+		}
+		user.setUserPassword(newPassword);
+		int update = updateUser(user, loginUser);
+		if (update <= 0){
+			throw new BusinessException(ErrorCode.SYSTEM_ERROR);
+		}
 	}
 
 	private Page<UserVO> getRandomUser() {

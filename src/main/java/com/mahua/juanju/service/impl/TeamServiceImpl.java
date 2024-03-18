@@ -227,6 +227,9 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
 				BeanUtils.copyProperties(user,userVO);
 				teamUserVO.setCreateUser(userVO);
 			}
+			QueryWrapper<UserTeam> teamHasJoinNumQueryWrapper = new QueryWrapper<>();
+			teamHasJoinNumQueryWrapper.eq("team_id",team.getId());
+			teamUserVO.setHasJoinNum((int) userTeamService.count(teamHasJoinNumQueryWrapper));
 
 			teamUserVOList.add(teamUserVO);
 		}

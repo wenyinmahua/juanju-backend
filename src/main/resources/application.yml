@@ -4,11 +4,6 @@ spring:
   application:
 # 注意这里的name影响运行时的输出项目的名称
     name: juanju
-  datasource:
-    url: jdbc:mysql://localhost:3307/juanju
-    username: root
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    password: "030109"
     # session失效时间(分钟,两个月),SpringBoot3.0之后不需要再配置store-type
   session:
     timeout: 86400

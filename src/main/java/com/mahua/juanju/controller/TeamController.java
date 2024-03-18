@@ -104,6 +104,9 @@ public class TeamController {
 		if (teamList == null){
 			throw new BusinessException(ErrorCode.SYSTEM_ERROR,"获取队伍列表错误");
 		}
+		if (teamList.getRecords().size() == 0){
+			return ResultUtils.success(null,"暂无队伍列表");
+		}
 		List<Long> teamIdList = teamList.getRecords().stream().map(TeamUserVO::getId).collect(Collectors.toList());
 		QueryWrapper<UserTeam> queryWrapper = new QueryWrapper();
 		try{
@@ -118,11 +121,11 @@ public class TeamController {
 				team.setHasJoin(hasJoin);
 			});
 		}catch (Exception e){}
-		QueryWrapper<UserTeam> userTeamJoinQueryWrapper = new QueryWrapper<>();
+/*		QueryWrapper<UserTeam> userTeamJoinQueryWrapper = new QueryWrapper<>();
 		userTeamJoinQueryWrapper.in("team_id",teamIdList);
 		List<UserTeam> userTeamList = userTeamService.list(userTeamJoinQueryWrapper);
 		Map<Long,List<UserTeam>> teamIdUserTeamList = userTeamList.stream().collect(Collectors.groupingBy(UserTeam::getTeamId));
-		teamList.getRecords().forEach(team->team.setHasJoinNum(teamIdUserTeamList.getOrDefault(team.getId(),new ArrayList<>()).size()));
+		teamList.getRecords().forEach(team->team.setHasJoinNum(teamIdUserTeamList.getOrDefault(team.getId(),new ArrayList<>()).size()));*/
 		return ResultUtils.success(teamList);
 	}
 

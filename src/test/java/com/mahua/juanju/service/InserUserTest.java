@@ -17,7 +17,7 @@ public class InserUserTest {
 	@Resource
 	private UserService userService;
 
-	private ExecutorService executorService = new ThreadPoolExecutor(60, 100, 10000, TimeUnit.MINUTES, new ArrayBlockingQueue<>(10000));
+	private ExecutorService executorService = new ThreadPoolExecutor(60, 100, 10000, TimeUnit.SECONDS, new ArrayBlockingQueue<>(10000));
 	/**
 	 * 批量插入用户
 	 */
@@ -83,7 +83,7 @@ public class InserUserTest {
 			}
 			CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
 				System.out.println("ThreadName:"+Thread.currentThread().getName());
-				userService.saveBatch(userList, 10000);
+				userService.saveBatch(userList, batchSize);
 			},executorService);
 			futureList.add(future);
 		}

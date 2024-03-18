@@ -10,6 +10,7 @@ import com.mahua.juanju.common.ResultUtils;
 import com.mahua.juanju.model.User;
 import com.mahua.juanju.model.request.UserLoginRequest;
 import com.mahua.juanju.model.request.UserRegisterRequest;
+import com.mahua.juanju.model.request.UserUpdatePasswordRequest;
 import com.mahua.juanju.model.vo.UserVO;
 import com.mahua.juanju.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -154,7 +155,7 @@ public class UserController {
 
 	@Operation(summary = "获取最匹配的用户")
 	@GetMapping("/match")
-	public BaseResponse<List<User>> matchUsers( long num,HttpServletRequest request){
+	public BaseResponse<List<UserVO>> matchUsers( long num,HttpServletRequest request){
 		if (num < 0 || num >= 20){
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
 		}
@@ -182,6 +183,17 @@ public class UserController {
 
 		int result = userService.updateUser(user,loginUser);
 		return ResultUtils.success(result);
+	}
+
+	@PostMapping("/update/password")
+	@Operation(summary = "修改用户密码")
+	public BaseResponse updatePassword(@RequestBody UserUpdatePasswordRequest userUpdatePasswordRequest, HttpServletRequest request){
+		String oldPassword = userUpdatePasswordRequest.getOldPassword();
+		String newPassword = userUpdatePasswordRequest.getNewPassword();
+		String checkPassword = userUpdatePasswordRequest.getCheckPassword();
+		userService.updatePassword(oldPassword, newPassword, checkPassword,request);
+
+		return ResultUtils.success("修改密码成功");
 	}
 
 	@PostMapping("/delete")

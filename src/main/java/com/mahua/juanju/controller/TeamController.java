@@ -137,11 +137,7 @@ public class TeamController {
 		}
 		User loginUser = userService.getLoginUser(request);
 		teamQuery.setUserId(loginUser.getId());
-		Page<TeamUserVO> teamList = teamService.listTeams(teamQuery,true);
-		if (teamList == null){
-			throw new BusinessException(ErrorCode.SYSTEM_ERROR,"获取队伍列表错误");
-		}
-		return ResultUtils.success(teamList);
+		return getPageBaseResponse(teamQuery);
 	}
 
 	@Operation(summary = "获取我加入的队伍")
@@ -157,9 +153,16 @@ public class TeamController {
 		Map<Long,List<UserTeam>> listMap = userTeamList.stream().collect(Collectors.groupingBy(UserTeam::getTeamId));
 		List<Long> idList = new ArrayList<>(listMap.keySet());
 		teamQuery.setIdList(idList);
+		return getPageBaseResponse(teamQuery);
+	}
+
+	private BaseResponse<Page<TeamUserVO>> getPageBaseResponse(@ParameterObject TeamQuery teamQuery) {
 		Page<TeamUserVO> teamList = teamService.listTeams(teamQuery,true);
 		if (teamList == null){
 			throw new BusinessException(ErrorCode.SYSTEM_ERROR,"获取队伍列表错误");
+		}
+		for(TeamUserVO teamUserVO : teamList.getRecords()){
+			teamUserVO.setHasJoin(true);
 		}
 		return ResultUtils.success(teamList);
 	}

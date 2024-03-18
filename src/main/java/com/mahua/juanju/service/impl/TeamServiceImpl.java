@@ -148,9 +148,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
 
 	@Override
 	public Page<TeamUserVO> listTeams(TeamQuery teamQuery,boolean isAdmin) {
-		QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
-
-		if (teamQuery != null){
+		QueryWrapper<Team> queryWrapper = new QueryWrapper<>();if (teamQuery != null){
 
 			Long userId = teamQuery.getUserId();
 			if(userId != null && userId > 0){
@@ -185,19 +183,17 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
 			Integer status = teamQuery.getStatus();
 			TeamStatusEnum statusEnum = TeamStatusEnum.getEnumByValue(status);
 			if (statusEnum == null){
-				statusEnum = TeamStatusEnum.PUBLIC;
+				queryWrapper.and(wrapper -> {
+					wrapper.eq("status", TeamStatusEnum.PUBLIC.getValue());
+					wrapper.or().eq("status", TeamStatusEnum.SECRET.getValue());
+				});
+			}else {
+				queryWrapper.eq("status",statusEnum.getValue());
 			}
 			if(!isAdmin && statusEnum.equals(TeamStatusEnum.PRIVATE)) {
 				throw new BusinessException(ErrorCode.NO_AUTHORIZED);
 			}
-//			else {
-//				int statueValue = statusEnum.getValue();
-//				queryWrapper.and(wrapper -> {
-//					wrapper.eq("status", statueValue);
-//					wrapper.or().eq("status", TeamStatusEnum.SECRET.getValue());
-//				});
-//			}
-			queryWrapper.eq("status",statusEnum.getValue());
+
 			Integer maxNum = teamQuery.getMaxNum();
 			if (maxNum != null && maxNum > 1){
 				queryWrapper.eq("max_num",maxNum);

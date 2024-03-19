@@ -1,16 +1,10 @@
 package com.mahua.juanju.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.mahua.juanju.Exception.BusinessException;
-import com.mahua.juanju.common.ErrorCode;
-import com.mahua.juanju.model.User;
 import com.mahua.juanju.model.domain.UserTeam;
-import com.mahua.juanju.service.UserService;
 import com.mahua.juanju.service.UserTeamService;
 import com.mahua.juanju.mapper.UserTeamMapper;
 import jakarta.annotation.Resource;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
 
 /**

@@ -1,7 +1,7 @@
 package com.mahua.juanju.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.mahua.juanju.model.User;
+import com.mahua.juanju.model.domain.User;
 import com.mahua.juanju.model.domain.Team;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.mahua.juanju.model.dto.TeamQuery;

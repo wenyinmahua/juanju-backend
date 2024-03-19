@@ -2,7 +2,7 @@ package com.mahua.juanju.job;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.mahua.juanju.model.User;
+import com.mahua.juanju.model.domain.User;
 import com.mahua.juanju.service.UserService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;

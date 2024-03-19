@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.mahua.juanju.Exception.BusinessException;
 import com.mahua.juanju.common.ErrorCode;
 import com.mahua.juanju.constant.TeamStatusEnum;
-import com.mahua.juanju.model.User;
+import com.mahua.juanju.model.domain.User;
 import com.mahua.juanju.model.domain.Team;
 import com.mahua.juanju.model.domain.UserTeam;
 import com.mahua.juanju.model.dto.TeamQuery;
@@ -25,7 +25,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
-import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -35,7 +34,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
 * @author mahua

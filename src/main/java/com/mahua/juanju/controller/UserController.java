@@ -7,7 +7,7 @@ import com.mahua.juanju.Exception.BusinessException;
 import com.mahua.juanju.common.BaseResponse;
 import com.mahua.juanju.common.ErrorCode;
 import com.mahua.juanju.common.ResultUtils;
-import com.mahua.juanju.model.User;
+import com.mahua.juanju.model.domain.User;
 import com.mahua.juanju.model.request.UserLoginRequest;
 import com.mahua.juanju.model.request.UserRegisterRequest;
 import com.mahua.juanju.model.request.UserUpdatePasswordRequest;
@@ -20,12 +20,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 

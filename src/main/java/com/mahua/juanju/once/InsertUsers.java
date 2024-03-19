@@ -1,7 +1,7 @@
 package com.mahua.juanju.once;
 
 import com.mahua.juanju.mapper.UserMapper;
-import com.mahua.juanju.model.User;
+import com.mahua.juanju.model.domain.User;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;

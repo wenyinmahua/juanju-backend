@@ -6,7 +6,7 @@ import com.mahua.juanju.Exception.BusinessException;
 import com.mahua.juanju.common.BaseResponse;
 import com.mahua.juanju.common.ErrorCode;
 import com.mahua.juanju.common.ResultUtils;
-import com.mahua.juanju.model.User;
+import com.mahua.juanju.model.domain.User;
 import com.mahua.juanju.model.domain.Team;
 import com.mahua.juanju.model.domain.UserTeam;
 import com.mahua.juanju.model.dto.TeamQuery;

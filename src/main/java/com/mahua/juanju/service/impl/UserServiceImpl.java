@@ -2,14 +2,13 @@ package com.mahua.juanju.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.conditions.update.UpdateChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.mahua.juanju.Exception.BusinessException;
 import com.mahua.juanju.common.ErrorCode;
-import com.mahua.juanju.model.User;
+import com.mahua.juanju.model.domain.User;
 import com.mahua.juanju.model.vo.UserVO;
 import com.mahua.juanju.service.UserService;
 import com.mahua.juanju.mapper.UserMapper;
@@ -489,13 +488,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 		if (!newPassword.equals(checkPassword)){
 			throw new BusinessException(ErrorCode.PARAMS_ERROR,"两次密码不一致");
 		}
+		if (oldPassword.equals(newPassword)){
+			throw new BusinessException(ErrorCode.PARAMS_ERROR,"旧密码和新密码不能一样");
+		}
 		User loginUser = this.getLoginUser(request);
 		QueryWrapper<User> queryWrapper = new QueryWrapper<>();
 		queryWrapper.select("id","user_password").eq("id",loginUser.getId());
 		User user = getOne(queryWrapper);
+		oldPassword = DigestUtils.md5DigestAsHex((SALT+oldPassword).getBytes());
 		if (!oldPassword.equals(user.getUserPassword())){
 			throw new BusinessException(ErrorCode.PARAMS_ERROR,"原密码错误");
 		}
+		newPassword = DigestUtils.md5DigestAsHex((SALT+newPassword).getBytes());
 		user.setUserPassword(newPassword);
 		int update = updateUser(user, loginUser);
 		if (update <= 0){

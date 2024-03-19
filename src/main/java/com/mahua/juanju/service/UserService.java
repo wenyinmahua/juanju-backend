@@ -2,7 +2,7 @@ package com.mahua.juanju.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.mahua.juanju.model.User;
+import com.mahua.juanju.model.domain.User;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.mahua.juanju.model.vo.UserVO;
 import jakarta.servlet.http.HttpServletRequest;

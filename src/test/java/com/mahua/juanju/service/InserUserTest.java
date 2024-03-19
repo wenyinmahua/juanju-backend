@@ -1,6 +1,6 @@
 package com.mahua.juanju.service;
 
-import com.mahua.juanju.model.User;
+import com.mahua.juanju.model.domain.User;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

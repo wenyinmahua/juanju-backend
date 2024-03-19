@@ -4,7 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.mahua.juanju.mapper.UserMapper">
 
-    <resultMap id="BaseResultMap" type="com.mahua.juanju.model.User">
+    <resultMap id="BaseResultMap" type="com.mahua.juanju.model.domain.User">
             <id property="id" column="id" jdbcType="BIGINT"/>
             <result property="username" column="username" jdbcType="VARCHAR"/>
             <result property="userAccount" column="user_account" jdbcType="VARCHAR"/>
@@ -32,7 +32,7 @@
         is_delete,user_role,stu_id,
         tags,profile
     </sql>
-    <select id="getRandomUser" resultType="com.mahua.juanju.model.User">
+    <select id="getRandomUser" resultType="com.mahua.juanju.model.domain.User">
         select * from `user`
         where id >= (select floor(rand()*(select max(id) from `user`)))
         order by id

@@ -99,6 +99,10 @@ public class TeamController {
 		if (teamQuery == null ){
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
 		}
+		if (request == null){
+			throw new BusinessException(ErrorCode.PARAMS_ERROR);
+
+		}
 		boolean isAdmin = userService.isAdmin(request);
 		Page<TeamUserVO> teamList = teamService.listTeams(teamQuery,isAdmin);
 		if (teamList == null){

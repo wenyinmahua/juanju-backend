@@ -27,12 +27,13 @@ public interface  UserService extends IService<User> {
 	long userRegister(String userAccount, String userPassword, String checkPassword,String sutId);
 
 	/**
-	 *  用户登录
-	 * @param userAccount 登录账号
-	 * @param userPassword  登录密码
-	 * @return 脱敏后的用户信息
+	 * 用户登录
+	 *
+	 * @param userAccount  登录账号
+	 * @param userPassword 登录密码
+	 * @return token
 	 */
-	User doLogin(String userAccount, String userPassword, HttpServletRequest request);
+	String doLogin(String userAccount, String userPassword, HttpServletRequest request);
 
 	/**
 	 *  用户脱敏

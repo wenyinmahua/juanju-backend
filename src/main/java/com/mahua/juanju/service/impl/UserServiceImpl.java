@@ -31,6 +31,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.mahua.juanju.constant.RedisConstants.USER_LOGIN_KEY;
+import static com.mahua.juanju.constant.RedisConstants.USER_LOGIN_TIME;
 import static com.mahua.juanju.constant.SystemConstants.Page_Size;
 import static com.mahua.juanju.constant.UserConstant.ADMIN_ROLE;
 import static com.mahua.juanju.constant.UserConstant.USER_LOGIN_STATUS;
@@ -110,9 +112,49 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 	}
 
 	@Override
-	public User doLogin(String userAccount, String userPassword, HttpServletRequest request) {
+	public String doLogin(String userAccount, String userPassword, HttpServletRequest request) {
 		//1.校验
-		if(StringUtils.isAnyBlank(userAccount,userPassword)){
+		validateUserLoginMessage(userAccount, userPassword);
+		//2.从数据库中取出用户的账户信息
+		User user = getUserInDataBase(userAccount, userPassword);
+		//3.记录用户的登录态
+		String token = getUserLoginState(request, user);
+		return token;
+	}
+
+	private String getUserLoginState(HttpServletRequest request, User user) {
+		User safetyUser = this.getSafetyUser(user);
+		String token = UUID.randomUUID().toString();
+		Gson gson = new Gson();
+		String userJson = gson.toJson(safetyUser);
+		String key = USER_LOGIN_KEY + token;
+		redisTemplate.opsForValue().set(key,userJson);
+		redisTemplate.expire(key,USER_LOGIN_TIME,TimeUnit.SECONDS);
+		return token;
+	}
+
+	private User getUserInDataBase(String userAccount, String userPassword) {
+		userPassword = DigestUtils.md5DigestAsHex((SALT+ userPassword).getBytes());
+		//创建一个QueryWrapper对象，该对象用于封装查询条件，用于查询User实体类的相关信息。
+		QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+		//判断插入的userAccount在数据库中是否已有
+		if(userAccount.length() != 10){
+			queryWrapper.eq("user_account", userAccount);
+		}else{
+			queryWrapper.eq("stu_id", userAccount);
+		}
+		queryWrapper.eq("user_password", userPassword);
+		User user = userMapper.selectOne(queryWrapper);
+		//用户不存在
+		if(user == null){
+			log.info("user login failed，userAccount cannot match userPassword");
+			throw new BusinessException(ErrorCode.USER_ACCOUNT_ERROR,"账号或密码错误");
+		}
+		return user;
+	}
+
+	private static void validateUserLoginMessage(String userAccount, String userPassword) {
+		if(StringUtils.isAnyBlank(userAccount, userPassword)){
 			throw new BusinessException(ErrorCode.NULL_PARAMS, "参数为空");
 		}
 		if (userAccount.length() < 4){
@@ -127,32 +169,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 		if(matcher.find()){
 			throw new BusinessException(ErrorCode.USER_ACCOUNT_ERROR,"账号不能含有特殊字符");
 		}
-
-		//2.加密
-		userPassword = DigestUtils.md5DigestAsHex((SALT+userPassword).getBytes());
-		//创建一个QueryWrapper对象，该对象用于封装查询条件，用于查询User实体类的相关信息。
-		QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-		//判断插入的userAccount在数据库中是否已有
-		if(userAccount.length() != 10){
-			queryWrapper.eq("user_account",userAccount);
-		}else{
-			queryWrapper.eq("stu_id",userAccount);
-		}
-		queryWrapper.eq("user_password",userPassword);
-		User user = userMapper.selectOne(queryWrapper);
-		//用户不存在
-		if(user == null){
-			log.info("user login failed，userAccount cannot match userPassword");
-			throw new BusinessException(ErrorCode.USER_ACCOUNT_ERROR,"账号或密码错误");
-		}
-
-
-		//3.用户脱敏
-		User safetyUser = getSafetyUser(user);
-		//4.记录用户的登录态
-		request.getSession().setAttribute(USER_LOGIN_STATUS,user);
-
-		return safetyUser;
 	}
 
 
@@ -188,7 +204,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 	 */
 	@Override
 	public int logout(HttpServletRequest request) {
-		request.getSession().removeAttribute(USER_LOGIN_STATUS);
+		String token = request.getHeader("authorization");
+		String key = USER_LOGIN_KEY + token;
+		redisTemplate.delete(key);
 		return 1;
 	}
 
@@ -336,11 +354,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 		if (request == null){
 			return null;
 		}
-		Object userObj = request.getSession().getAttribute(USER_LOGIN_STATUS);
-		if (userObj == null){
+		String token = request.getHeader("authorization");
+		String key = USER_LOGIN_KEY + token;
+		String userJson  = (String) redisTemplate.opsForValue().get(key);
+		if (StringUtils.isBlank(userJson)){
 			throw new BusinessException(ErrorCode.NO_LOGIN,"请先登录");
 		}
-		return (User) userObj;
+		redisTemplate.expire(key,USER_LOGIN_TIME,TimeUnit.SECONDS);
+		Gson gson = new Gson();
+		User user = gson.fromJson(userJson, User.class);
+		return user;
 	}
 
 	/**
@@ -374,8 +397,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 	 * @return
 	 */
 	public boolean isAdmin(HttpServletRequest request){
-		Object userObj = request.getSession().getAttribute(USER_LOGIN_STATUS);
-		User user = (User) userObj;
+		String token = request.getHeader("authorization");
+		String key = USER_LOGIN_KEY + token;
+		String userJson = (String) redisTemplate.opsForValue().get(key);
+		Gson gson = new Gson();
+		User user = gson.fromJson(userJson,User.class);
 		if (user == null){
 			throw new BusinessException(ErrorCode.NO_LOGIN);
 		}

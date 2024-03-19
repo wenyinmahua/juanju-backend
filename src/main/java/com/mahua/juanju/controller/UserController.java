@@ -3,6 +3,7 @@ package com.mahua.juanju.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.google.gson.Gson;
 import com.mahua.juanju.Exception.BusinessException;
 import com.mahua.juanju.common.BaseResponse;
 import com.mahua.juanju.common.ErrorCode;
@@ -27,6 +28,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 
+import static com.mahua.juanju.constant.RedisConstants.USER_LOGIN_KEY;
 import static com.mahua.juanju.constant.UserConstant.USER_LOGIN_STATUS;
 
 /**
@@ -50,7 +52,7 @@ public class UserController {
 	//@RequestBody：将前端传来的JSON参数和UserRegisterRequest参数进行绑定，并自动将参数注入到UserRegisterRequest对象中
 	@PostMapping("/register")
 	@Operation(summary = "用户注册")
-	public BaseResponse<Long> Register(@RequestBody UserRegisterRequest userRegisterRequest){
+	public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest){
 		if(userRegisterRequest == null){
 			throw new BusinessException(ErrorCode.NULL_PARAMS);
 		}
@@ -69,7 +71,7 @@ public class UserController {
 
 	@PostMapping("/login")
 	@Operation(summary = "用户登录")
-	public BaseResponse<User> Login(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request){
+	public BaseResponse<String> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request){
 		//@RequestBody 注解：将前端传来的JSON参数和UserRegisterRequest参数进行绑定，并自动将参数注入到UserRegisterRequest对象中
 		if(userLoginRequest == null){
 			throw new BusinessException(ErrorCode.NULL_PARAMS);
@@ -79,9 +81,8 @@ public class UserController {
 		if(StringUtils.isAnyBlank( userAccount,userPassword)){
 			throw new BusinessException(ErrorCode.NULL_PARAMS);
 		}
-		User uer = userService.doLogin(userAccount, userPassword,request);
-		User safetyUser = userService.getSafetyUser(uer);
-		return ResultUtils.success(safetyUser,"登陆成功");
+		String token = userService.doLogin(userAccount, userPassword,request);
+		return ResultUtils.success(token,"登陆成功");
 
 	}
 
@@ -92,7 +93,7 @@ public class UserController {
 		if(request == null){
 			throw new BusinessException(ErrorCode.NULL_PARAMS);
 		}
-		 int result =  userService.logout(request);
+		int result =  userService.logout(request);
 		return ResultUtils.success(result);
 	}
 
@@ -121,7 +122,7 @@ public class UserController {
 	@GetMapping("/recommend")
 	@Operation(summary = "用户推荐")
 	public BaseResponse<Page<UserVO>> recommendUsers( long pageSize,long pageNum,HttpServletRequest request){
-		User loginUser = userService.getLoginUser(request);
+		/*User loginUser = userService.getLoginUser(request);
 		//如果有缓存，直接读缓存
 //		String redisKey = String.format("juanju:user:recommend:%s:%s",loginUser.getId(),pageNum);
 //		ValueOperations<String,Object> valueOperations = redisTemplate.opsForValue();
@@ -144,7 +145,7 @@ public class UserController {
 //		}
 		if (loginUser ==null){
 			throw new BusinessException(ErrorCode.NO_LOGIN);
-		}
+		}*/
 		Page<UserVO> userPageList = userService.recommend(pageNum);
 		return ResultUtils.success(userPageList);
 
@@ -210,8 +211,14 @@ public class UserController {
 	@GetMapping("/current")
 	@Operation(summary = "获取当前用户信息")
 	public BaseResponse<User> getCurrentUser(HttpServletRequest request){
-		Object userObj = request.getSession().getAttribute(USER_LOGIN_STATUS);
-		User currentUser = (User) userObj;
+		if (request == null) {
+			throw new BusinessException(ErrorCode.NO_LOGIN);
+		}
+		String token = request.getHeader("authorization");
+		String key = USER_LOGIN_KEY + token;
+		String userJson = (String) redisTemplate.opsForValue().get(key);
+		Gson gson = new Gson();
+		User currentUser = gson.fromJson(userJson,User.class);
 		if(currentUser == null){
 			throw new BusinessException(ErrorCode.NO_LOGIN);
 		}

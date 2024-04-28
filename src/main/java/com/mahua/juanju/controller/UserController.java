@@ -36,7 +36,7 @@ import static com.mahua.juanju.constant.UserConstant.USER_LOGIN_STATUS;
  *
  * @author mahua
  */
-@CrossOrigin(origins = {"http://localhost:5173","http://localhost:8000","http://localhost:3000"},allowCredentials = "true")
+@CrossOrigin(origins = {"http://localhost:5173","http://localhost:8000","http://localhost:3000","http://localhost"},allowCredentials = "true")
 @RestController
 @RequestMapping("/user")
 @Tag(name = "用户接口")
@@ -112,40 +112,14 @@ public class UserController {
 		// 脱敏
 		List<User> list = userList.stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
 		return ResultUtils.success(list);
-//		return userList.stream().map(user -> {
-////		拉姆达表达式
-//			user.setUserPassword(null);
-//			return userService.getSafetyUser(user);
-//		}).collect(Collectors.toList());
 	}
 
 	@GetMapping("/recommend")
 	@Operation(summary = "用户推荐")
 	public BaseResponse<Page<UserVO>> recommendUsers( long pageSize,long pageNum,HttpServletRequest request){
-		/*User loginUser = userService.getLoginUser(request);
-		//如果有缓存，直接读缓存
-//		String redisKey = String.format("juanju:user:recommend:%s:%s",loginUser.getId(),pageNum);
-//		ValueOperations<String,Object> valueOperations = redisTemplate.opsForValue();
-//		Page<User> userPage = (Page<User>) valueOperations.get(redisKey);
-//		if(userPage != null){
-//			return ResultUtils.success(userPage);
-//		}
-		//无缓存，查数据库
-//		QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-//		Page<User> userPageList = userService.page(new Page<>(pageNum, pageSize),queryWrapper);
-//		List<User> userList = userPageList.getRecords();
-//		userList = userList.stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
-//		userPageList.setRecords(userList);
-//		int total = Math.min((int) userPageList.getTotal(), 64);
-//		userPageList.setTotal(total);
-//		try {
-//			valueOperations.set(redisKey,userPageList,30000, TimeUnit.MILLISECONDS);
-//		} catch (Exception e) {
-//			log.error("redis set key error",e);
-//		}
-		if (loginUser ==null){
-			throw new BusinessException(ErrorCode.NO_LOGIN);
-		}*/
+
+		String token = request.getHeader("authorization");
+		log.error(token);
 		Page<UserVO> userPageList = userService.recommend(pageNum);
 		return ResultUtils.success(userPageList);
 
@@ -215,8 +189,15 @@ public class UserController {
 			throw new BusinessException(ErrorCode.NO_LOGIN);
 		}
 		String token = request.getHeader("authorization");
+		log.error(token);
+		if(token == null){
+			throw new BusinessException(ErrorCode.NO_LOGIN);
+		}
 		String key = USER_LOGIN_KEY + token;
 		String userJson = (String) redisTemplate.opsForValue().get(key);
+		if (StringUtils.isBlank(userJson)){
+			throw new BusinessException(ErrorCode.NO_LOGIN);
+		}
 		Gson gson = new Gson();
 		User currentUser = gson.fromJson(userJson,User.class);
 		if(currentUser == null){
@@ -227,9 +208,4 @@ public class UserController {
 		User safetyUser = userService.getSafetyUser(user);
 		return ResultUtils.success(safetyUser);
 	}
-
-
-
-
-
 }

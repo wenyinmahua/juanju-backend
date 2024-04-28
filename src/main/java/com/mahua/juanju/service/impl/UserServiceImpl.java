@@ -383,11 +383,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 			queryWrapper = queryWrapper.like("tags",tageName);
 		}
 		List<User> userList = userMapper.selectList(queryWrapper);
-//		userList.forEach(user ->{
-//			getSafetyUser(user);
-//		});
-//		===>
-//		userList.forEach(this::getSafetyUser);
 		return userList.stream().map(this::getSafetyUser).collect(Collectors.toList());
 	}
 
@@ -428,8 +423,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 		}
 		String tags = loginUser.getTags();
 		Gson gson = new Gson();
-		List<String> tagList = gson.fromJson(tags, new TypeToken<List<String>>() {
-		}.getType());
+		List<String> tagList = gson.fromJson(tags, new TypeToken<List<String>>() {}.getType());
 		QueryWrapper queryWrapper = new QueryWrapper();
 		queryWrapper.select("id","tags");
 		queryWrapper.isNotNull("tags");
@@ -448,33 +442,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 			long distance = AlgorithmUtils.minDistance(tagList, userTagList);
 			list.add(new Pair<>(user,distance));
 		}
-//		List<Integer> maxDistanceIndexList = indexSDistanceMap.keySet().stream().limit(num).collect(Collectors.toList());
-//		List<User> userList1  = maxDistanceIndexList.stream().
-//				map(index -> {
-//			return getSafetyUser(userList.get(index));
-//		}).collect(Collectors.toList());
 		// 按编辑距离由小到大排序
 		List<Pair<User,Long>> topUserPairList = list.stream()
 				.sorted((a,b) -> (int)(a.getValue() - b.getValue())).
 				limit(num)
 				.collect(Collectors.toList());
-		for (Pair<User,Long> userLongPair : topUserPairList){
-			System.out.println(userLongPair.getKey().getId()+":"+userLongPair.getValue());
-		}
-//		List<User> userVOList =	topUserPairList.stream().map(Pair::getKey).collect(Collectors.toList());
 		List<Long> userIdList = topUserPairList.stream().map(pair -> pair.getKey().getId()).collect(Collectors.toList());
 		QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
 		userQueryWrapper.in("id",userIdList);
 
-/*
-		下面查询的结果是按id的顺序返回，前面排序无效
-		List<User> users = this.list(userQueryWrapper).stream().map(user -> getSafetyUser(user)).collect(Collectors.toList());
-		return users;
-*/
-
-//		修改为
+		// 注意 MySQL 会将 id 列表优化，加快查询数据，导致返回的结果是按照 id 递增的顺序返回，而不是排序后的id 顺序返回
+		// 解决方案：将所有符合条件的数据全查询出来，之后按照给定的 id 顺序进行排序
 		finalUserList = new ArrayList<>();
+		// 通过 Map 保存 用户id 以及 用户的信息
 		Map<Long,List<User>> userIdUserListMap = this.list(userQueryWrapper).stream().map(user -> getSafetyUser(user)).collect(Collectors.groupingBy(User::getId));
+		// 根据 排序好后的 id 从 map 中取出相关的数据插入链表，保证了返回的顺序，同时保存在 Redis 缓存中
 		for (Long userId : userIdList){
 			UserVO userVO = new UserVO();
 			BeanUtils.copyProperties(userIdUserListMap.get(userId).get(0),userVO);

@@ -116,7 +116,6 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
 
 
 		// 7. 校验用户最多创建 5 个队伍
-		// todo 有bug 可能同时创建 100 个队伍
 		QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
 		queryWrapper.eq("user_id",userId);
 		long hasTeamNum = this.count(queryWrapper);
@@ -146,8 +145,8 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
 
 	@Override
 	public Page<TeamUserVO> listTeams(TeamQuery teamQuery,boolean isAdmin) {
-		QueryWrapper<Team> queryWrapper = new QueryWrapper<>();if (teamQuery != null){
-
+		QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
+		if (teamQuery != null){
 			Long userId = teamQuery.getUserId();
 			if(userId != null && userId > 0){
 				queryWrapper.eq("user_id",userId);
@@ -261,7 +260,6 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
 				throw new BusinessException(ErrorCode.PARAMS_ERROR,"密码不能为空");
 			}
 		}
-
 		Team updateTeam = new Team();
 		BeanUtils.copyProperties(teamUpdateRequest,updateTeam);
 		return this.updateById(updateTeam);
@@ -272,7 +270,6 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
 		if (teamJoinRequest == null){
 			throw new BusinessException(ErrorCode.NULL_PARAMS);
 		}
-
 		long teamId = teamJoinRequest.getTeamId();
 		if (teamId <= 0){
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -297,7 +294,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
 		}
 		long userId = loginUser.getId();
 		// 分布式锁解决用户加入队伍数量问题
-		RLock lock = redissonClient.getLock("juanju:join_time");
+		RLock lock = redissonClient.getLock("juanju:join_team");
 		try {
 			while(true){
 			// 等待时间为 0，抢锁只抢一次，抢不到就放弃，锁存在时间为 -1

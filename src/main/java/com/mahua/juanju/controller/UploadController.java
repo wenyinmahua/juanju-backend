@@ -34,7 +34,7 @@ public class UploadController {
 		if (loginUser == null){
 			return ResultUtils.error(ErrorCode.NO_LOGIN);
 		}
-		log.info("文件上传{}",file);
+//		log.info("文件上传{}",file);
 		if (file == null){
 			return ResultUtils.error(ErrorCode.PARAMS_ERROR,"文件不存在");
 		}
@@ -46,7 +46,7 @@ public class UploadController {
 			//调用阿里云OSS工具上传图片
 			String filePath = aliOssUtil.upload(file.getInputStream(),objectname);
 			//图片上传成功，返回文件路径
-			//https://web-tlias-mmh.oss-cn-beijing.aliyuncs.com/2b502878-11f1-431c-a17f-9665c7cc7dac.jpg
+			//https://web-tlias-xxxx.oss-cn-beijing.aliyuncs.com/2b502878-11f1-431c-a17f-9665c7cc7dac.jpg
 			return ResultUtils.success(filePath);
 		} catch (IOException e) {
 			log.error("文件上传失败{}",e);

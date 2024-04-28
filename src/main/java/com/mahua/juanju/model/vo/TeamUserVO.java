@@ -3,10 +3,8 @@ package com.mahua.juanju.model.vo;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
-import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 
 /**
  * 队伍和用户的信息封装类（脱敏），返回给前端
@@ -14,7 +12,6 @@ import java.util.List;
 @Data
 public class TeamUserVO implements Serializable {
 
-	@Serial
 	private static final long serialVersionUID = 49479662056374828L;
 
 

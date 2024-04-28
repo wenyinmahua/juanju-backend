@@ -1,12 +1,9 @@
 package com.mahua.juanju.model.vo;
 
-import com.baomidou.mybatisplus.annotation.*;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
-import java.io.Serial;
 import java.io.Serializable;
-import java.util.Date;
+
 
 /**
  * 用户表
@@ -14,8 +11,6 @@ import java.util.Date;
  */
 @Data
 public class UserVO implements Serializable {
-
-    @Serial
     private static final long serialVersionUID = 8696175249543933002L;
 
     private Long id;
